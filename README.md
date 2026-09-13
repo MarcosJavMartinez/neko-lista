@@ -2,7 +2,7 @@
 
 Lista de compras y presupuesto: cargá productos, marcalos como comprados y llevá el control de cuánto llevás gastado y cuánto te falta — sin cuenta, sin ads, gratis. Categoriza y le asigna un ícono a más de 100 productos comunes automáticamente por nombre.
 
-### 🌐 [Ver demo en vivo →](https://lista-de-compras-navy-phi.vercel.app/)
+### 🌐 [Ver demo en vivo →](https://neko-lista.vercel.app/)
 
 ## 📸 Vista previa
 
@@ -35,4 +35,4 @@ Terminado y funcional, en desarrollo activo (mejoras de UI casi a diario). Sin c
 
 ## 👤 Autor
 
-Desarrollado por [Marcos Martínez](https://github.com/MarcosJavMartinez), bajo la marca Neko Tools.
+Desarrollado por [Marcos Martínez](https://github.com/MarcosJavMartinez), bajo la marca [Neko Tools](https://nekotools.site).
