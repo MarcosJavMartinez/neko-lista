@@ -118,7 +118,8 @@ body.bg-pattern-mode::before {
 }
 
 h1, h2,
-.summary-total-value,
+.summary-money-value,
+.summary-stat-value,
 .product-total,
 .btn,
 .filter-toggle-btn,
@@ -127,7 +128,8 @@ h1, h2,
   font-family: "Outfit", "Inter", sans-serif;
 }
 
-.summary-total-value,
+.summary-money-value,
+.summary-stat-value,
 .product-total,
 .product-qty-display,
 .qty-control .edit-quantity {
@@ -970,11 +972,12 @@ a:focus-visible {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
   max-width: 640px;
   margin: 0 auto;
   box-sizing: border-box;
+  flex-wrap: wrap;
 }
 
 .bottom-summary-bar {
@@ -989,64 +992,68 @@ a:focus-visible {
   padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
 }
 
-.summary-left {
+/* Pendientes / comprados / total: siempre en el medio, nombre arriba,
+   número abajo -- misma estructura que las tarjetas de plata a los costados. */
+.summary-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+  order: 2;
+}
+
+.summary-stat {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  flex: 1;
+  align-items: center;
+  gap: 1px;
   min-width: 0;
 }
 
-.summary-inline {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.summary-inline-item {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.7rem;
-}
-
-.summary-inline-item strong {
-  font-family: "Outfit", sans-serif;
-  font-size: 0.92rem;
+.summary-stat-value {
+  font-size: 0.95rem;
   font-weight: 800;
   color: #fff;
-  margin-right: 2px;
+  line-height: 1.1;
 }
 
-.summary-inline-sep {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.summary-spent {
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.summary-stat-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.78);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
   white-space: nowrap;
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.75);
 }
 
-.summary-total {
+/* Ya compraste / Falta comprar: misma tarjeta, mismo peso visual para
+   las dos -- solo cambia el ícono y a qué plata se refiere cada una. */
+.summary-money-card {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   flex-shrink: 0;
   background: #fff;
   color: var(--color-primary-dark);
   border-radius: var(--radius-md);
-  padding: 7px 12px;
+  padding: 6px 10px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
 }
 
-.summary-total-icon {
+.summary-money-card:first-child {
+  order: 1;
+}
+
+.summary-money-card:last-child {
+  order: 3;
+}
+
+.summary-money-icon {
   flex-shrink: 0;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: var(--color-primary-soft);
   color: var(--color-primary-dark);
@@ -1055,12 +1062,12 @@ a:focus-visible {
   justify-content: center;
 }
 
-.summary-total-icon svg {
-  width: 14px;
-  height: 14px;
+.summary-money-icon svg {
+  width: 13px;
+  height: 13px;
 }
 
-.summary-total-text {
+.summary-money-text {
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -1068,70 +1075,97 @@ a:focus-visible {
   min-width: 0;
 }
 
-.summary-total-label {
-  font-size: 0.65rem;
+.summary-money-label {
+  font-size: 0.62rem;
   font-weight: 600;
   color: var(--color-text-muted);
   white-space: nowrap;
 }
 
-.summary-total-value {
-  font-size: 1.05rem;
+.summary-money-value {
+  font-size: 0.95rem;
   font-weight: 800;
   color: var(--color-primary-dark);
   display: inline-block;
   white-space: nowrap;
 }
 
-.summary-total-value.pulse {
+.summary-money-value.pulse {
   animation: total-pulse 320ms ease;
 }
 
-@media (min-width: 480px) {
+/* Ojo: este resumen tiene que entrar 2 montos + 3 números en una sola
+   fila, así que el "modo grande" recién arranca en 600px -- entre 400 y
+   599px ya viene muy justo con el tamaño chico, agrandar antes hace que
+   se superponga el contenido. */
+@media (min-width: 600px) {
   .bottom-summary-bar {
     padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
   }
 
-  .summary-inline-item {
-    font-size: 0.76rem;
+  .summary-stats {
+    gap: 20px;
   }
 
-  .summary-inline-item strong {
-    font-size: 1rem;
-    margin-right: 3px;
+  .summary-stat-value {
+    font-size: 1.05rem;
   }
 
-  .summary-spent {
-    font-size: 0.74rem;
+  .summary-stat-label {
+    font-size: 0.66rem;
   }
 
-  .summary-total {
-    gap: 10px;
-    padding: 8px 14px;
+  .summary-money-card {
+    gap: 9px;
+    padding: 7px 13px;
   }
 
-  .summary-total-icon {
-    width: 30px;
-    height: 30px;
+  .summary-money-icon {
+    width: 28px;
+    height: 28px;
   }
 
-  .summary-total-icon svg {
-    width: 16px;
-    height: 16px;
+  .summary-money-icon svg {
+    width: 15px;
+    height: 15px;
   }
 
-  .summary-total-label {
-    font-size: 0.7rem;
+  .summary-money-label {
+    font-size: 0.68rem;
   }
 
-  .summary-total-value {
-    font-size: 1.2rem;
+  .summary-money-value {
+    font-size: 1.1rem;
   }
 }
 
-@media (max-width: 340px) {
-  .summary-total-icon {
+@media (max-width: 440px) {
+  .summary-money-icon {
     display: none;
+  }
+
+  .summary-stats {
+    gap: 10px;
+  }
+
+  .summary-money-card {
+    padding: 6px 8px;
+  }
+}
+
+/* Debajo de 400px, meter las 2 tarjetas de plata + los 3 números en una
+   sola fila queda muy apretado -- los números pasan a su propia fila,
+   con más aire, en vez de achicar el texto hasta que casi no se lea. */
+@media (max-width: 400px) {
+  .header-summary {
+    justify-content: center;
+    row-gap: 8px;
+  }
+
+  .summary-stats {
+    order: 3;
+    flex-basis: 100%;
+    justify-content: space-between;
   }
 }
 

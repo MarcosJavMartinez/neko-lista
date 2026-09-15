@@ -476,17 +476,34 @@
 <!-- Resumen: barra fija abajo, siempre visible -->
 <div class="bottom-summary-bar">
   <div class="header-summary">
-    <div class="summary-left">
-      <div class="summary-inline">
-        <span class="summary-inline-item"><strong id="summary-pending">0</strong> <span data-i18n="summary_pendientes">pending</span></span><span class="summary-inline-sep" aria-hidden="true"> · </span><span class="summary-inline-item"><strong id="summary-purchased">0</strong> <span data-i18n="summary_comprados">purchased</span></span><span class="summary-inline-sep" aria-hidden="true"> · </span><span class="summary-inline-item"><strong id="summary-count">0</strong> <span data-i18n="summary_total">total</span></span>
+    <div class="summary-money-card">
+      <span class="summary-money-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
+      <div class="summary-money-text">
+        <span class="summary-money-label" data-i18n="doc_ya_compraste">Already bought</span>
+        <span class="summary-money-value" id="summary-spent">$0,00</span>
       </div>
-      <p class="summary-spent" id="summary-spent">You've bought $0,00</p>
     </div>
-    <div class="summary-total">
-      <span class="summary-total-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg></span>
-      <div class="summary-total-text">
-        <span class="summary-total-label" data-i18n="doc_falta_comprar">Still to buy</span>
-        <span class="summary-total-value" id="summary-total">$0,00</span>
+
+    <div class="summary-stats">
+      <div class="summary-stat">
+        <span class="summary-stat-value" id="summary-pending">0</span>
+        <span class="summary-stat-label" data-i18n="summary_pendientes">pending</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-value" id="summary-purchased">0</span>
+        <span class="summary-stat-label" data-i18n="summary_comprados">purchased</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-value" id="summary-count">0</span>
+        <span class="summary-stat-label" data-i18n="summary_total">total</span>
+      </div>
+    </div>
+
+    <div class="summary-money-card">
+      <span class="summary-money-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg></span>
+      <div class="summary-money-text">
+        <span class="summary-money-label" data-i18n="doc_falta_comprar">Still to buy</span>
+        <span class="summary-money-value" id="summary-total">$0,00</span>
       </div>
     </div>
   </div>

@@ -1548,21 +1548,23 @@ function calculateTotals() {
    Render
    ========================================================================== */
 
+function pulseIfChanged(el, newText) {
+  if (el.textContent && el.textContent !== newText) {
+    el.classList.remove("pulse");
+    void el.offsetWidth; // reinicia la animación si ya estaba corriendo
+    el.classList.add("pulse");
+  }
+  el.textContent = newText;
+}
+
 function renderSummary() {
   const { pending, purchased, count, pendingTotal, purchasedTotal } = calculateTotals();
-  const newTotalText = formatCurrency(pendingTotal);
-
-  if (summaryTotalEl.textContent && summaryTotalEl.textContent !== newTotalText) {
-    summaryTotalEl.classList.remove("pulse");
-    void summaryTotalEl.offsetWidth; // reinicia la animación si ya estaba corriendo
-    summaryTotalEl.classList.add("pulse");
-  }
 
   summaryPendingEl.textContent = pending;
   summaryPurchasedEl.textContent = purchased;
   summaryCountEl.textContent = count;
-  summaryTotalEl.textContent = newTotalText;
-  summarySpentEl.textContent = t("summary_spent", { amount: formatCurrency(purchasedTotal) });
+  pulseIfChanged(summaryTotalEl, formatCurrency(pendingTotal));
+  pulseIfChanged(summarySpentEl, formatCurrency(purchasedTotal));
 }
 
 function createProductElement(product) {
