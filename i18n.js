@@ -177,9 +177,9 @@ const TRANSLATIONS = {
     doc_falta_comprar: "Falta comprar",
     doc_ya_compraste: "Ya compraste",
 
-    summary_pendientes: "pendientes",
-    summary_comprados: "comprados",
-    summary_total: "total",
+    summary_pendientes: "Faltante",
+    summary_comprados: "Comprados",
+    summary_total: "Total",
     summary_spent: "Ya compraste {{amount}}",
 
     palette_swatch_aria: "Plantilla de color {{name}}",
@@ -356,9 +356,9 @@ const TRANSLATIONS = {
     doc_falta_comprar: "Still to buy",
     doc_ya_compraste: "Already bought",
 
-    summary_pendientes: "pending",
-    summary_comprados: "purchased",
-    summary_total: "total",
+    summary_pendientes: "Pending",
+    summary_comprados: "Purchased",
+    summary_total: "Total",
     summary_spent: "You've bought {{amount}}",
 
     palette_swatch_aria: "Color theme {{name}}",
@@ -535,9 +535,9 @@ const TRANSLATIONS = {
     doc_falta_comprar: "Falta comprar",
     doc_ya_compraste: "Já comprou",
 
-    summary_pendientes: "pendentes",
-    summary_comprados: "comprados",
-    summary_total: "total",
+    summary_pendientes: "Pendentes",
+    summary_comprados: "Comprados",
+    summary_total: "Total",
     summary_spent: "Você já comprou {{amount}}",
 
     palette_swatch_aria: "Tema de cor {{name}}",
@@ -714,9 +714,9 @@ const TRANSLATIONS = {
     doc_falta_comprar: "Alınacaklar",
     doc_ya_compraste: "Satın alındı",
 
-    summary_pendientes: "bekleyen",
-    summary_comprados: "satın alınan",
-    summary_total: "toplam",
+    summary_pendientes: "Bekleyen",
+    summary_comprados: "Satın alınan",
+    summary_total: "Toplam",
     summary_spent: "{{amount}} harcadın",
 
     palette_swatch_aria: "{{name}} renk teması",
@@ -893,9 +893,9 @@ const TRANSLATIONS = {
     doc_falta_comprar: "Осталось купить",
     doc_ya_compraste: "Уже куплено",
 
-    summary_pendientes: "ожидает",
-    summary_comprados: "куплено",
-    summary_total: "всего",
+    summary_pendientes: "Ожидает",
+    summary_comprados: "Куплено",
+    summary_total: "Всего",
     summary_spent: "Вы уже купили на {{amount}}",
 
     palette_swatch_aria: "Цветовая тема «{{name}}»",
