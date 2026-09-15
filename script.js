@@ -460,6 +460,14 @@ const pdfStatus = document.getElementById("pdf-status");
 const btnExportImage = document.getElementById("btn-export-image");
 const inputImportImage = document.getElementById("input-import-image");
 const imageStatus = document.getElementById("image-status");
+const btnGenerateCode = document.getElementById("btn-generate-code");
+const generatedCodeBox = document.getElementById("generated-code-box");
+const generatedCodeValue = document.getElementById("generated-code-value");
+const generateCodeStatus = document.getElementById("generate-code-status");
+const inputReceiveCode = document.getElementById("input-receive-code");
+const btnReceiveCode = document.getElementById("btn-receive-code");
+const receiveCodeStatus = document.getElementById("receive-code-status");
+const TRANSFER_API_URL = "https://nekotools.site/transfer.php";
 const inputBgColor = document.getElementById("input-bg-color");
 const btnResetBg = document.getElementById("btn-reset-bg");
 const paletteRow = document.getElementById("palette-row");
@@ -2023,6 +2031,85 @@ inputImportData.addEventListener("change", () => {
     inputImportData.value = "";
   };
   reader.readAsText(file);
+});
+
+// Puente por código: manda/trae la lista a través de transfer.php en
+// nekotools.site, sin cuenta ni archivos. Ver README para el detalle del
+// endpoint (código corto, un solo uso, vence solo a los 15 minutos).
+btnGenerateCode.addEventListener("click", async () => {
+  if (products.length === 0) {
+    generateCodeStatus.textContent = t("status_no_products_export");
+    generatedCodeBox.hidden = true;
+    return;
+  }
+
+  btnGenerateCode.disabled = true;
+  generateCodeStatus.textContent = t("code_status_generating");
+  generatedCodeBox.hidden = true;
+
+  try {
+    const response = await fetch(TRANSFER_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: products }),
+    });
+    const result = await response.json();
+
+    if (!response.ok || !result.ok) throw new Error(result.error || "request_failed");
+
+    generatedCodeValue.textContent = result.code;
+    generatedCodeBox.hidden = false;
+    generateCodeStatus.textContent = "";
+  } catch (error) {
+    console.error("No se pudo generar el código de transferencia.", error);
+    generateCodeStatus.textContent = t("code_status_error_generate");
+  } finally {
+    btnGenerateCode.disabled = false;
+  }
+});
+
+btnReceiveCode.addEventListener("click", async () => {
+  const code = inputReceiveCode.value.trim().toUpperCase();
+  if (!/^[A-Z0-9]{6}$/.test(code)) {
+    receiveCodeStatus.textContent = t("code_status_error_invalid");
+    return;
+  }
+
+  btnReceiveCode.disabled = true;
+  receiveCodeStatus.textContent = t("code_status_receiving");
+
+  try {
+    const response = await fetch(`${TRANSFER_API_URL}?code=${encodeURIComponent(code)}`);
+    const result = await response.json();
+
+    if (!response.ok || !result.ok || !Array.isArray(result.data)) {
+      throw new Error(result.error || "request_failed");
+    }
+
+    if (confirm(t("confirm_replace_list", { count: result.data.length }))) {
+      products = result.data;
+      saveToLocalStorage();
+      mergeNewCatalogProducts();
+      renderProducts();
+      receiveCodeStatus.textContent = "";
+      inputReceiveCode.value = "";
+    } else {
+      receiveCodeStatus.textContent = "";
+    }
+  } catch (error) {
+    console.error("No se pudo traer la lista por código.", error);
+    receiveCodeStatus.textContent = t("code_status_error_receive");
+  } finally {
+    btnReceiveCode.disabled = false;
+  }
+});
+
+inputReceiveCode.addEventListener("input", () => {
+  inputReceiveCode.value = inputReceiveCode.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+});
+
+inputReceiveCode.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") btnReceiveCode.click();
 });
 
 btnCopyListText.addEventListener("click", async () => {
