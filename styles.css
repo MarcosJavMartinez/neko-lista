@@ -651,6 +651,18 @@ h1, h2,
   text-align: center;
 }
 
+.code-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.code-divider {
+  height: 1px;
+  margin: 18px 0;
+  background: var(--color-border);
+}
+
 .generated-code-box {
   margin-top: 10px;
   padding: 14px;

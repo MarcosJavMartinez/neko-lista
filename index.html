@@ -386,21 +386,30 @@
       </div>
 
       <div class="io-panel" data-io-panel="codigo" hidden>
-        <p class="settings-desc" data-i18n="code_desc">Generate a short code on this device and enter it on the other one to send your list over the internet — no files, no account. It's valid for 15 minutes and works once.</p>
-        <div class="settings-backup-actions">
-          <button type="button" id="btn-generate-code" class="btn btn-secondary btn-small" data-i18n="generate_code_btn">📱 Generate code</button>
+        <div class="code-section">
+          <span class="settings-label" data-i18n="code_send_label">Send</span>
+          <p class="settings-desc" data-i18n="code_send_desc">Generate a code on this device to send your list to another one, over the internet — no files, no account.</p>
+          <div class="settings-backup-actions">
+            <button type="button" id="btn-generate-code" class="btn btn-secondary btn-small" data-i18n="generate_code_btn">📱 Generate code</button>
+          </div>
+          <div id="generated-code-box" class="generated-code-box" hidden>
+            <span class="generated-code" id="generated-code-value">------</span>
+            <p class="settings-desc" data-i18n="code_expiry_note">Valid for 15 minutes, works once.</p>
+          </div>
+          <p id="generate-code-status" class="settings-desc"></p>
         </div>
-        <div id="generated-code-box" class="generated-code-box" hidden>
-          <span class="generated-code" id="generated-code-value">------</span>
-          <p class="settings-desc" data-i18n="code_expiry_note">Valid for 15 minutes, works once.</p>
-        </div>
-        <p id="generate-code-status" class="settings-desc"></p>
 
-        <div class="settings-backup-actions code-receive-row">
-          <input type="text" id="input-receive-code" class="code-input" data-i18n-placeholder="code_input_placeholder" placeholder="Code" maxlength="6" autocomplete="off" autocapitalize="characters" />
-          <button type="button" id="btn-receive-code" class="btn btn-primary btn-small" data-i18n="receive_code_btn">⬇️ Bring list</button>
+        <div class="code-divider" role="separator"></div>
+
+        <div class="code-section">
+          <span class="settings-label" data-i18n="code_receive_label">Receive</span>
+          <p class="settings-desc" data-i18n="code_receive_desc">Got a code from another device? Enter it here to bring in that list.</p>
+          <div class="settings-backup-actions code-receive-row">
+            <input type="text" id="input-receive-code" class="code-input" data-i18n-placeholder="code_input_placeholder" placeholder="Code" maxlength="6" autocomplete="off" autocapitalize="characters" />
+            <button type="button" id="btn-receive-code" class="btn btn-primary btn-small" data-i18n="receive_code_btn">⬇️ Bring list</button>
+          </div>
+          <p id="receive-code-status" class="settings-desc"></p>
         </div>
-        <p id="receive-code-status" class="settings-desc"></p>
       </div>
     </div>
   </section>
