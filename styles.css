@@ -1153,15 +1153,19 @@ a:focus-visible {
 
 /* Debajo de 400px, meter las 2 tarjetas de plata + los 3 números en una
    sola fila queda muy apretado -- los números pasan a su propia fila,
-   con más aire, en vez de achicar el texto hasta que casi no se lea. */
+   con más aire, en vez de achicar el texto hasta que casi no se lea.
+   El order de .summary-stats tiene que ser mayor al de la segunda
+   tarjeta (order: 3 en la regla base): si empatan, el desempate es por
+   orden en el HTML, que la ubica ENTRE las dos tarjetas de plata y
+   fuerza cada una a su propia fila en vez de dejarlas juntas arriba. */
 @media (max-width: 400px) {
   .header-summary {
-    justify-content: center;
+    justify-content: space-between;
     row-gap: 8px;
   }
 
   .summary-stats {
-    order: 3;
+    order: 4;
     flex-basis: 100%;
     justify-content: space-between;
   }
