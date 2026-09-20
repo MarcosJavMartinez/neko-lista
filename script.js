@@ -527,6 +527,66 @@ function generateId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+// Todo lo que entra de afuera (archivo importado, lista recibida por código,
+// localStorage) pasa por acá antes de tocar la app: no confiamos en que la
+// forma ni los valores sean los esperados, porque una lista armada a
+// propósito es la forma más fácil de meterle basura a alguien.
+const MAX_IMPORTED_PRODUCTS = 2000;
+const MAX_PRODUCT_NAME_LENGTH = 200;
+const MAX_PRODUCT_QUANTITY = 9999;
+const MAX_PRODUCT_PRICE = 1e9;
+const MAX_EMOJI_ICON_LENGTH = 16;
+const MAX_IMAGE_ICON_LENGTH = 60000;
+const IMAGE_ICON_PATTERN = /^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+=*$/;
+
+function sanitizeIcon(icon, name) {
+  if (typeof icon === "string") {
+    if (icon.startsWith("data:")) {
+      if (icon.length <= MAX_IMAGE_ICON_LENGTH && IMAGE_ICON_PATTERN.test(icon)) return icon;
+    } else if (icon.length > 0 && icon.length <= MAX_EMOJI_ICON_LENGTH) {
+      return icon;
+    }
+  }
+  return getProductIcon(name);
+}
+
+function sanitizeProduct(raw, usedIds) {
+  if (!raw || typeof raw !== "object" || typeof raw.name !== "string") return null;
+
+  const name = raw.name.trim().slice(0, MAX_PRODUCT_NAME_LENGTH);
+  if (!name) return null;
+
+  let id = typeof raw.id === "string" && raw.id.length > 0 && raw.id.length <= 64 ? raw.id : null;
+  if (id === null || usedIds.has(id)) id = generateId();
+  usedIds.add(id);
+
+  const quantity = Math.round(Number(raw.quantity));
+  const price = Number(raw.price);
+  const product = {
+    id,
+    name,
+    quantity: Number.isFinite(quantity) ? Math.min(MAX_PRODUCT_QUANTITY, Math.max(1, quantity)) : 1,
+    price: Number.isFinite(price) ? Math.min(MAX_PRODUCT_PRICE, Math.max(0, price)) : 0,
+    purchased: raw.purchased === true,
+    category: Object.prototype.hasOwnProperty.call(CATEGORY_COLORS, raw.category) ? raw.category : DEFAULT_CATEGORY,
+    priority: raw.priority === true,
+    icon: sanitizeIcon(raw.icon, name),
+  };
+  if (typeof raw.key === "string" && /^[a-z0-9_]{1,40}$/.test(raw.key)) product.key = raw.key;
+  return product;
+}
+
+function sanitizeProductList(list) {
+  if (!Array.isArray(list)) return [];
+  const usedIds = new Set();
+  const clean = [];
+  for (const raw of list.slice(0, MAX_IMPORTED_PRODUCTS)) {
+    const product = sanitizeProduct(raw, usedIds);
+    if (product) clean.push(product);
+  }
+  return clean;
+}
+
 function formatCurrency(value) {
   return currencyFormatter.format(value || 0);
 }
@@ -777,7 +837,9 @@ function applyBackgroundImage() {
     } catch (error) {
       console.error("No se pudo leer la imagen de fondo guardada.", error);
     }
-    if (customImage) {
+    // Solo data URLs de imagen sin caracteres que puedan cerrar el url("...")
+    // y colar CSS: lo guardado en localStorage no se toma como confiable.
+    if (customImage && /^data:image\/[a-z+.-]+;base64,[A-Za-z0-9+/]+=*$/.test(customImage)) {
       document.body.style.backgroundImage = `url("${customImage}")`;
       document.body.style.backgroundSize = "cover";
       document.body.style.backgroundRepeat = "no-repeat";
@@ -939,7 +1001,7 @@ function loadFromLocalStorage() {
 
   try {
     const parsed = JSON.parse(raw);
-    products = Array.isArray(parsed) ? parsed : [];
+    products = sanitizeProductList(parsed);
   } catch (error) {
     console.error("No se pudo leer la lista guardada, se reinicia.", error);
     products = [];
@@ -1082,6 +1144,16 @@ function buildListText() {
 const JSPDF_URL = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js";
 const PDFJS_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
 const PDFJS_WORKER_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+const TESSERACT_URL = "https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/7.0.0/tesseract.min.js";
+
+// Subresource Integrity: si alguien alterara estos archivos en el CDN, el
+// navegador se niega a ejecutarlos. Los hashes coinciden con los que publica
+// cdnjs; al cambiar de versión hay que actualizarlos juntos con la URL.
+const SCRIPT_INTEGRITY = {
+  [JSPDF_URL]: "sha384-qovJwSBbRDPP5cEjCp8S0UP66wrvnjaa60XMOGzTNanrThcrGfXfnZkvgY8N1KT3",
+  [PDFJS_URL]: "sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e",
+  [TESSERACT_URL]: "sha384-2BQ3U3OdKOb0Uczxqr41I9UvZkzr4V9Hv8uSzMMZAlmhsFClvdZX5wi5fDCzG+tM",
+};
 
 const loadedScripts = {};
 function loadScript(src) {
@@ -1089,6 +1161,10 @@ function loadScript(src) {
     loadedScripts[src] = new Promise((resolve, reject) => {
       const script = document.createElement("script");
       script.src = src;
+      if (SCRIPT_INTEGRITY[src]) {
+        script.integrity = SCRIPT_INTEGRITY[src];
+        script.crossOrigin = "anonymous";
+      }
       script.onload = resolve;
       script.onerror = () => reject(new Error(`No se pudo cargar ${src}`));
       document.head.appendChild(script);
@@ -1209,7 +1285,9 @@ function stripPdfBoilerplate(text) {
 }
 
 async function extractTextFromPdf(arrayBuffer) {
-  const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  // isEvalSupported:false cierra CVE-2024-4367: en pdf.js < 4.2.67 un PDF
+  // armado a propósito podía ejecutar JavaScript vía la fuente embebida.
+  const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer, isEvalSupported: false }).promise;
   let fullText = "";
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
@@ -1225,8 +1303,6 @@ async function extractTextFromPdf(arrayBuffer) {
 /* ==========================================================================
    Imagen: exportar la lista como foto, e importar leyendo una foto (OCR)
    ========================================================================== */
-
-const TESSERACT_URL = "https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/7.0.0/tesseract.min.js";
 
 async function ensureTesseractLoaded() {
   if (!window.Tesseract) await loadScript(TESSERACT_URL);
@@ -2116,14 +2192,15 @@ inputImportData.addEventListener("change", () => {
       return;
     }
 
-    if (!Array.isArray(parsed) || !parsed.every((item) => typeof item.name === "string")) {
+    const cleaned = sanitizeProductList(parsed);
+    if (!Array.isArray(parsed) || (parsed.length > 0 && cleaned.length === 0)) {
       alert(t("alert_invalid_format"));
       inputImportData.value = "";
       return;
     }
 
-    if (confirm(t("confirm_replace_list", { count: parsed.length }))) {
-      products = parsed;
+    if (confirm(t("confirm_replace_list", { count: cleaned.length }))) {
+      products = cleaned;
       saveToLocalStorage();
       mergeNewCatalogProducts();
       renderProducts();
@@ -2186,8 +2263,11 @@ btnReceiveCode.addEventListener("click", async () => {
       throw new Error(result.error || "request_failed");
     }
 
-    if (confirm(t("confirm_replace_list", { count: result.data.length }))) {
-      products = result.data;
+    const cleaned = sanitizeProductList(result.data);
+    if (result.data.length > 0 && cleaned.length === 0) throw new Error("invalid_data");
+
+    if (confirm(t("confirm_replace_list", { count: cleaned.length }))) {
+      products = cleaned;
       saveToLocalStorage();
       mergeNewCatalogProducts();
       renderProducts();
