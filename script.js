@@ -5,15 +5,16 @@
    ========================================================================== */
 
 // Datos de identidad de marca, centralizados para no repetir strings sueltos.
-// websiteUrl queda vacío hasta que Neko Tools tenga página propia: mientras
-// tanto el link correspondiente se deshabilita solo en vez de apuntar a una
-// URL inventada.
 const BRAND = {
   companyName: "Neko Tools",
   appName: "Neko Lista",
   tagline: "Tu lista. Tu presupuesto. Sin complicaciones.",
   donationUrl: "https://ko-fi.com/nekotools",
-  websiteUrl: "",
+  websiteUrl: "https://nekotools.site",
+  // A donde manda "Compartir": la sección de Neko Lista en la página de
+  // Neko Tools, no un link directo a la app. Así quien recibe el link
+  // conoce la marca y el resto de las herramientas antes de entrar.
+  shareUrl: "https://nekotools.site/#producto",
 };
 
 /* ==========================================================================
@@ -445,6 +446,8 @@ const btnInstallApp = document.getElementById("btn-install-app");
 const installBackdrop = document.getElementById("install-backdrop");
 const btnInstallClose = document.getElementById("btn-install-close");
 const installInstructionsEl = document.getElementById("install-instructions");
+const btnShareApp = document.getElementById("btn-share-app");
+const toastEl = document.getElementById("toast");
 const themeOptionButtons = document.querySelectorAll(".theme-option");
 const btnExportData = document.getElementById("btn-export-data");
 const inputImportData = document.getElementById("input-import-data");
@@ -1941,6 +1944,61 @@ document.addEventListener("keydown", (event) => {
 });
 
 updateInstallButtonVisibility();
+
+/* ==========================================================================
+   Toast (aviso corto que aparece y se esconde solo)
+   ========================================================================== */
+
+let toastHideTimer = null;
+
+function showToast(message) {
+  clearTimeout(toastHideTimer);
+  toastEl.textContent = message;
+  toastEl.hidden = false;
+  // El reflow entre sacar [hidden] y agregar la clase es necesario para que
+  // la transición de opacidad/transform se vea: si se agregan juntos el
+  // navegador no anima el cambio.
+  toastEl.getBoundingClientRect();
+  toastEl.classList.add("is-visible");
+  toastHideTimer = setTimeout(() => {
+    toastEl.classList.remove("is-visible");
+    setTimeout(() => {
+      toastEl.hidden = true;
+    }, 200);
+  }, 2400);
+}
+
+/* ==========================================================================
+   Compartir la app
+   ========================================================================== */
+
+// El link que se comparte apunta siempre a la página de Neko Tools (sección
+// de Neko Lista), nunca directo a la app: así quien lo recibe pasa primero
+// por ahí, sea que lo compartan desde el celular con la app instalada o
+// desde el navegador.
+btnShareApp.addEventListener("click", async () => {
+  const shareData = {
+    title: BRAND.appName,
+    text: t("share_text"),
+    url: BRAND.shareUrl,
+  };
+
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+    } catch (error) {
+      // El usuario cerró el diálogo nativo de compartir: no es un error.
+    }
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(BRAND.shareUrl);
+    showToast(t("share_toast_copied"));
+  } catch (error) {
+    window.prompt(t("share_copy_manual"), BRAND.shareUrl);
+  }
+});
 
 if ("serviceWorker" in navigator) {
   // Si ya había un controller al cargar, cualquier "controllerchange"

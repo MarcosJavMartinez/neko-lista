@@ -17,6 +17,7 @@ const LANG_KEY = "listaCompras.lang";
 
 const TRANSLATIONS = {
   es: {
+    share_app_aria: "Compartir app",
     install_app_aria: "Instalar app",
     theme_to_night_aria: "Cambiar a modo noche",
     theme_to_day_aria: "Cambiar a modo día",
@@ -89,6 +90,10 @@ const TRANSLATIONS = {
     install_title: "📲 Instalar Neko Lista",
     install_instructions_ios: 'Tocá el botón Compartir (el cuadrado con la flecha hacia arriba) en la barra de Safari y elegí "Agregar a inicio".',
     install_instructions_other: 'Abrí el menú (⋮) de tu navegador y elegí "Instalar app" o "Agregar a pantalla de inicio".',
+
+    share_text: "Neko Lista: la lista de compras que calcula el total en el momento.",
+    share_toast_copied: "Enlace copiado",
+    share_copy_manual: "Copiá este enlace para compartirlo:",
 
     settings_title: "Configuración",
     close_settings_aria: "Cerrar configuración",
@@ -196,6 +201,7 @@ const TRANSLATIONS = {
   },
 
   en: {
+    share_app_aria: "Share app",
     install_app_aria: "Install app",
     theme_to_night_aria: "Switch to dark mode",
     theme_to_day_aria: "Switch to light mode",
@@ -268,6 +274,10 @@ const TRANSLATIONS = {
     install_title: "📲 Install Neko Lista",
     install_instructions_ios: 'Tap the Share button (the square with an arrow) in Safari\'s toolbar and choose "Add to Home Screen".',
     install_instructions_other: 'Open your browser menu (⋮) and choose "Install app" or "Add to Home screen".',
+
+    share_text: "Neko Lista: the shopping list that adds up your total as you go.",
+    share_toast_copied: "Link copied",
+    share_copy_manual: "Copy this link to share it:",
 
     settings_title: "Settings",
     close_settings_aria: "Close settings",
@@ -375,6 +385,7 @@ const TRANSLATIONS = {
   },
 
   pt: {
+    share_app_aria: "Compartilhar app",
     install_app_aria: "Instalar app",
     theme_to_night_aria: "Mudar para modo escuro",
     theme_to_day_aria: "Mudar para modo claro",
@@ -447,6 +458,10 @@ const TRANSLATIONS = {
     install_title: "📲 Instalar o Neko Lista",
     install_instructions_ios: 'Toque no botão Compartilhar (o quadrado com a seta para cima) na barra do Safari e escolha "Adicionar à Tela de Início".',
     install_instructions_other: 'Abra o menu (⋮) do seu navegador e escolha "Instalar app" ou "Adicionar à tela inicial".',
+
+    share_text: "Neko Lista: a lista de compras que soma o total na hora.",
+    share_toast_copied: "Link copiado",
+    share_copy_manual: "Copie este link para compartilhar:",
 
     settings_title: "Configurações",
     close_settings_aria: "Fechar configurações",
@@ -554,6 +569,7 @@ const TRANSLATIONS = {
   },
 
   tr: {
+    share_app_aria: "Uygulamayı paylaş",
     install_app_aria: "Uygulamayı yükle",
     theme_to_night_aria: "Karanlık moda geç",
     theme_to_day_aria: "Aydınlık moda geç",
@@ -626,6 +642,10 @@ const TRANSLATIONS = {
     install_title: "📲 Neko Lista'yı yükle",
     install_instructions_ios: 'Safari araç çubuğundaki Paylaş düğmesine (yukarı oklu kare) dokun ve "Ana Ekrana Ekle" seçeneğini seç.',
     install_instructions_other: 'Tarayıcının menüsünü (⋮) aç ve "Uygulamayı yükle" veya "Ana ekrana ekle" seçeneğini belirle.',
+
+    share_text: "Neko Lista: toplamı anında hesaplayan alışveriş listesi.",
+    share_toast_copied: "Bağlantı kopyalandı",
+    share_copy_manual: "Paylaşmak için bu bağlantıyı kopyala:",
 
     settings_title: "Ayarlar",
     close_settings_aria: "Ayarları kapat",
@@ -733,6 +753,7 @@ const TRANSLATIONS = {
   },
 
   ru: {
+    share_app_aria: "Поделиться приложением",
     install_app_aria: "Установить приложение",
     theme_to_night_aria: "Переключить в тёмный режим",
     theme_to_day_aria: "Переключить в светлый режим",
@@ -805,6 +826,10 @@ const TRANSLATIONS = {
     install_title: "📲 Установить Neko Lista",
     install_instructions_ios: "Нажмите кнопку «Поделиться» (квадрат со стрелкой вверх) на панели Safari и выберите «На экран “Домой”».",
     install_instructions_other: "Откройте меню браузера (⋮) и выберите «Установить приложение» или «Добавить на главный экран».",
+
+    share_text: "Neko Lista: список покупок, который сразу считает итоговую сумму.",
+    share_toast_copied: "Ссылка скопирована",
+    share_copy_manual: "Скопируйте эту ссылку, чтобы поделиться:",
 
     settings_title: "Настройки",
     close_settings_aria: "Закрыть настройки",
@@ -912,6 +937,7 @@ const TRANSLATIONS = {
   },
 
   ja: {
+    share_app_aria: "アプリを共有",
     install_app_aria: "アプリをインストール",
     theme_to_night_aria: "ダークモードに切り替え",
     theme_to_day_aria: "ライトモードに切り替え",
@@ -984,6 +1010,10 @@ const TRANSLATIONS = {
     install_title: "📲 Neko Listaをインストール",
     install_instructions_ios: "Safariのツールバーにある共有ボタン（上矢印の四角いアイコン）をタップし、「ホーム画面に追加」を選んでください。",
     install_instructions_other: "ブラウザのメニュー（⋮）を開き、「アプリをインストール」または「ホーム画面に追加」を選んでください。",
+
+    share_text: "Neko Lista：買い物の合計をその場で計算してくれるショッピングリスト。",
+    share_toast_copied: "リンクをコピーしました",
+    share_copy_manual: "共有するにはこのリンクをコピーしてください：",
 
     settings_title: "設定",
     close_settings_aria: "設定を閉じる",
