@@ -446,6 +446,7 @@ const btnInstallApp = document.getElementById("btn-install-app");
 const installBackdrop = document.getElementById("install-backdrop");
 const btnInstallClose = document.getElementById("btn-install-close");
 const installInstructionsEl = document.getElementById("install-instructions");
+const btnInstallConfirm = document.getElementById("btn-install-confirm");
 const btnShareApp = document.getElementById("btn-share-app");
 const toastEl = document.getElementById("toast");
 const themeOptionButtons = document.querySelectorAll(".theme-option");
@@ -1901,9 +1902,15 @@ function updateInstallButtonVisibility() {
 function openInstallModal() {
   const ua = navigator.userAgent || "";
   const isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  installInstructionsEl.textContent = isIOS
-    ? t("install_instructions_ios")
-    : t("install_instructions_other");
+  // Con el prompt nativo disponible (Android/Chrome) se instala con un toque;
+  // sin él (iPhone, otros navegadores) solo se pueden explicar los pasos.
+  const canInstallDirectly = Boolean(deferredInstallPrompt);
+  installInstructionsEl.textContent = canInstallDirectly
+    ? t("install_desc_direct")
+    : isIOS
+      ? t("install_instructions_ios")
+      : t("install_instructions_other");
+  btnInstallConfirm.hidden = !canInstallDirectly;
   installBackdrop.hidden = false;
 }
 
@@ -1922,15 +1929,16 @@ window.addEventListener("appinstalled", () => {
   updateInstallButtonVisibility();
 });
 
-btnInstallApp.addEventListener("click", async () => {
-  if (deferredInstallPrompt) {
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt = null;
-    updateInstallButtonVisibility();
-  } else {
-    openInstallModal();
-  }
+btnInstallApp.addEventListener("click", openInstallModal);
+
+btnInstallConfirm.addEventListener("click", async () => {
+  if (!deferredInstallPrompt) return;
+  const promptEvent = deferredInstallPrompt;
+  closeInstallModal();
+  promptEvent.prompt();
+  await promptEvent.userChoice;
+  deferredInstallPrompt = null;
+  updateInstallButtonVisibility();
 });
 
 btnInstallClose.addEventListener("click", closeInstallModal);
