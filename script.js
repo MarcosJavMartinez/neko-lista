@@ -1963,10 +1963,13 @@ btnInstallConfirm.addEventListener("click", async () => {
   }
   const promptEvent = deferredInstallPrompt;
   closeInstallModal();
+  // El aviso sale ya al tocar "Instalar": en algunos celulares el cuadro del
+  // navegador tarda en aparecer y sin nada en pantalla parece que no pasó nada.
+  showInstallProgress();
   promptEvent.prompt();
   const choice = await promptEvent.userChoice;
   deferredInstallPrompt = null;
-  if (choice && choice.outcome === "accepted") showInstallProgress();
+  if (!choice || choice.outcome !== "accepted") hideInstallProgress();
   updateInstallButtonVisibility();
 });
 
