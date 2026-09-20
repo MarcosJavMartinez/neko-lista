@@ -930,12 +930,39 @@ function closeIconPicker(slotEl, triggerBtn) {
    Persistencia
    ========================================================================== */
 
+// localStorage puede fallar (cuota llena, modo privado, cookies bloqueadas):
+// que la app siga funcionando en memoria y avise, en vez de romperse.
+let toastHideTimer = null;
+let storageErrorShown = false;
+
+function safeGetItem(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch (error) {
+    console.error("No se pudo leer el almacenamiento del navegador.", error);
+    return null;
+  }
+}
+
 function saveToLocalStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+    storageErrorShown = false;
+  } catch (error) {
+    console.error("No se pudo guardar la lista.", error);
+    if (!storageErrorShown) {
+      storageErrorShown = true;
+      showToast(t("storage_error"));
+    }
+  }
 }
 
 function saveCatalogVersion() {
-  localStorage.setItem(CATALOG_VERSION_KEY, String(CATALOG_VERSION));
+  try {
+    localStorage.setItem(CATALOG_VERSION_KEY, String(CATALOG_VERSION));
+  } catch (error) {
+    console.error("No se pudo guardar la versión del catálogo.", error);
+  }
 }
 
 // Suma al catálogo guardado los productos nuevos que se hayan agregado al
@@ -944,7 +971,7 @@ function saveCatalogVersion() {
 // mano. Corre una sola vez por versión de catálogo, así un producto borrado
 // a propósito no vuelve a aparecer solo porque falta en la lista guardada.
 function mergeNewCatalogProducts() {
-  const storedVersion = Number(localStorage.getItem(CATALOG_VERSION_KEY)) || 0;
+  const storedVersion = Number(safeGetItem(CATALOG_VERSION_KEY)) || 0;
   if (storedVersion >= CATALOG_VERSION) return;
 
   // Dos formas de reconocer "esto ya lo tengo": por `key` (productos
@@ -990,7 +1017,7 @@ function mergeNewCatalogProducts() {
 }
 
 function loadFromLocalStorage() {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  const raw = safeGetItem(STORAGE_KEY);
 
   if (raw === null) {
     products = DEFAULT_PRODUCTS;
@@ -2065,8 +2092,6 @@ updateInstallButtonVisibility();
    Toast (aviso corto que aparece y se esconde solo)
    ========================================================================== */
 
-let toastHideTimer = null;
-
 function showToast(message) {
   clearTimeout(toastHideTimer);
   toastEl.textContent = message;
@@ -2102,10 +2127,12 @@ btnShareApp.addEventListener("click", async () => {
   if (navigator.share) {
     try {
       await navigator.share(shareData);
+      return;
     } catch (error) {
-      // El usuario cerró el diálogo nativo de compartir: no es un error.
+      // Cerrar el diálogo nativo no es un error; cualquier otra falla del
+      // share nativo cae al copiado del link de abajo.
+      if (error && error.name === "AbortError") return;
     }
-    return;
   }
 
   try {

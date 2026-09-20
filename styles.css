@@ -297,6 +297,89 @@ h1, h2,
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* Con 5 botones en el encabezado (compartir, instalar, idioma, tema,
+   configuración) el título "Neko Lista" no entra en un celular con los
+   tamaños de escritorio: se achican botones, logo y título por tramos. */
+@media (max-width: 430px) {
+  .app-header-top {
+    gap: 8px;
+  }
+
+  .app-brand {
+    gap: 8px;
+  }
+
+  .app-brand-logo {
+    width: 36px;
+    height: 36px;
+  }
+
+  .app-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .header-actions {
+    gap: 4px;
+  }
+
+  .header-icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 380px) {
+  .app-brand {
+    gap: 6px;
+  }
+
+  .app-brand-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+  }
+
+  .app-header h1 {
+    font-size: 1.1rem;
+  }
+
+  .header-actions {
+    gap: 3px;
+  }
+
+  .header-icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+@media (max-width: 340px) {
+  .app-header-top {
+    padding-left: 10px;
+    padding-right: 10px;
+    gap: 6px;
+  }
+
+  .app-brand-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+  }
+
+  .app-header h1 {
+    font-size: 1rem;
+  }
+
+  .app-brand-by {
+    font-size: 0.58rem;
+  }
+
+  .header-icon-btn {
+    width: 30px;
+    height: 30px;
+  }
+}
+
 .toast[hidden] {
   display: none;
 }
@@ -310,7 +393,9 @@ h1, h2,
   background: var(--color-text);
   color: var(--color-card);
   padding: 10px 18px;
-  border-radius: 999px;
+  border-radius: 20px;
+  max-width: min(92vw, 420px);
+  text-align: center;
   font-size: 0.85rem;
   font-weight: 600;
   box-shadow: var(--shadow-lg);

@@ -98,6 +98,7 @@ const TRANSLATIONS = {
     share_text: "Neko Lista: la lista de compras que calcula el total en el momento.",
     share_toast_copied: "Enlace copiado",
     share_copy_manual: "Copiá este enlace para compartirlo:",
+    storage_error: "No se pudo guardar tu lista: el almacenamiento del navegador está lleno o bloqueado.",
 
     settings_title: "Configuración",
     close_settings_aria: "Cerrar configuración",
@@ -286,6 +287,7 @@ const TRANSLATIONS = {
     share_text: "Neko Lista: the shopping list that adds up your total as you go.",
     share_toast_copied: "Link copied",
     share_copy_manual: "Copy this link to share it:",
+    storage_error: "Couldn't save your list: browser storage is full or blocked.",
 
     settings_title: "Settings",
     close_settings_aria: "Close settings",
@@ -474,6 +476,7 @@ const TRANSLATIONS = {
     share_text: "Neko Lista: a lista de compras que soma o total na hora.",
     share_toast_copied: "Link copiado",
     share_copy_manual: "Copie este link para compartilhar:",
+    storage_error: "Não foi possível salvar sua lista: o armazenamento do navegador está cheio ou bloqueado.",
 
     settings_title: "Configurações",
     close_settings_aria: "Fechar configurações",
@@ -662,6 +665,7 @@ const TRANSLATIONS = {
     share_text: "Neko Lista: toplamı anında hesaplayan alışveriş listesi.",
     share_toast_copied: "Bağlantı kopyalandı",
     share_copy_manual: "Paylaşmak için bu bağlantıyı kopyala:",
+    storage_error: "Listen kaydedilemedi: tarayıcı depolama alanı dolu veya engellenmiş.",
 
     settings_title: "Ayarlar",
     close_settings_aria: "Ayarları kapat",
@@ -850,6 +854,7 @@ const TRANSLATIONS = {
     share_text: "Neko Lista: список покупок, который сразу считает итоговую сумму.",
     share_toast_copied: "Ссылка скопирована",
     share_copy_manual: "Скопируйте эту ссылку, чтобы поделиться:",
+    storage_error: "Не удалось сохранить список: хранилище браузера заполнено или заблокировано.",
 
     settings_title: "Настройки",
     close_settings_aria: "Закрыть настройки",
@@ -1038,6 +1043,7 @@ const TRANSLATIONS = {
     share_text: "Neko Lista：買い物の合計をその場で計算してくれるショッピングリスト。",
     share_toast_copied: "リンクをコピーしました",
     share_copy_manual: "共有するにはこのリンクをコピーしてください：",
+    storage_error: "リストを保存できませんでした：ブラウザのストレージがいっぱいか、ブロックされています。",
 
     settings_title: "設定",
     close_settings_aria: "設定を閉じる",
@@ -1169,7 +1175,9 @@ function t(key, vars) {
     key;
   if (vars) {
     Object.keys(vars).forEach((k) => {
-      str = str.replace(new RegExp(`{{${k}}}`, "g"), vars[k]);
+      // Con función, para que "$&" o "$1" en un nombre de producto no se
+      // interpreten como patrones especiales de replace().
+      str = str.replace(new RegExp(`{{${k}}}`, "g"), () => String(vars[k]));
     });
   }
   return str;
