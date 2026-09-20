@@ -324,6 +324,57 @@ h1, h2,
   transform: translateX(-50%) translateY(0);
 }
 
+.install-progress[hidden] {
+  display: none;
+}
+
+.install-progress {
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top));
+  left: 50%;
+  z-index: 300;
+  transform: translateX(-50%);
+  width: min(92vw, 420px);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--color-text);
+  color: var(--color-card);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+  box-shadow: var(--shadow-lg);
+}
+
+.install-progress-spinner {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: 3px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: install-spin 0.8s linear infinite;
+}
+
+.install-progress.is-done .install-progress-spinner {
+  display: none;
+}
+
+@keyframes install-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .install-progress-spinner {
+    animation-duration: 2.4s;
+  }
+}
+
 /* Configuración: ventana modal aparte, no desplaza el contenido de la página */
 .modal-backdrop[hidden] {
   display: none;

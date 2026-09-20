@@ -90,6 +90,8 @@ const TRANSLATIONS = {
     install_title: "📲 ¿Instalar Neko Lista en tu dispositivo?",
     install_desc_direct: "Se instala como una app más, sin pasar por ninguna tienda.",
     install_confirm_btn: "Instalar",
+    installing_text: "Instalando Neko Lista… puede tardar hasta un minuto. No cierres esta pantalla.",
+    install_done_text: "✅ ¡Listo! Neko Lista ya está en tu dispositivo.",
     install_instructions_ios: 'Tocá el botón Compartir (el cuadrado con la flecha hacia arriba) en la barra de Safari y elegí "Agregar a inicio".',
     install_instructions_other: 'Abrí el menú (⋮) de tu navegador y elegí "Instalar app" o "Agregar a pantalla de inicio".',
 
@@ -276,6 +278,8 @@ const TRANSLATIONS = {
     install_title: "📲 Install Neko Lista on your device?",
     install_desc_direct: "It installs like any other app, no app store needed.",
     install_confirm_btn: "Install",
+    installing_text: "Installing Neko Lista… it can take up to a minute. Please keep this screen open.",
+    install_done_text: "✅ Done! Neko Lista is now on your device.",
     install_instructions_ios: 'Tap the Share button (the square with an arrow) in Safari\'s toolbar and choose "Add to Home Screen".',
     install_instructions_other: 'Open your browser menu (⋮) and choose "Install app" or "Add to Home screen".',
 
@@ -462,6 +466,8 @@ const TRANSLATIONS = {
     install_title: "📲 Instalar o Neko Lista no seu dispositivo?",
     install_desc_direct: "Ele é instalado como qualquer outro app, sem precisar de loja.",
     install_confirm_btn: "Instalar",
+    installing_text: "Instalando o Neko Lista… pode levar até um minuto. Não feche esta tela.",
+    install_done_text: "✅ Pronto! O Neko Lista já está no seu dispositivo.",
     install_instructions_ios: 'Toque no botão Compartilhar (o quadrado com a seta para cima) na barra do Safari e escolha "Adicionar à Tela de Início".',
     install_instructions_other: 'Abra o menu (⋮) do seu navegador e escolha "Instalar app" ou "Adicionar à tela inicial".',
 
@@ -648,6 +654,8 @@ const TRANSLATIONS = {
     install_title: "📲 Neko Lista cihazına yüklensin mi?",
     install_desc_direct: "Diğer uygulamalar gibi yüklenir, mağazaya gerek yok.",
     install_confirm_btn: "Yükle",
+    installing_text: "Neko Lista yükleniyor… bir dakikaya kadar sürebilir. Lütfen bu ekranı kapatma.",
+    install_done_text: "✅ Tamam! Neko Lista artık cihazında.",
     install_instructions_ios: 'Safari araç çubuğundaki Paylaş düğmesine (yukarı oklu kare) dokun ve "Ana Ekrana Ekle" seçeneğini seç.',
     install_instructions_other: 'Tarayıcının menüsünü (⋮) aç ve "Uygulamayı yükle" veya "Ana ekrana ekle" seçeneğini belirle.',
 
@@ -834,6 +842,8 @@ const TRANSLATIONS = {
     install_title: "📲 Установить Neko Lista на устройство?",
     install_desc_direct: "Устанавливается как обычное приложение, магазин не нужен.",
     install_confirm_btn: "Установить",
+    installing_text: "Устанавливаем Neko Lista… это может занять до минуты. Не закрывайте этот экран.",
+    install_done_text: "✅ Готово! Neko Lista уже на вашем устройстве.",
     install_instructions_ios: "Нажмите кнопку «Поделиться» (квадрат со стрелкой вверх) на панели Safari и выберите «На экран “Домой”».",
     install_instructions_other: "Откройте меню браузера (⋮) и выберите «Установить приложение» или «Добавить на главный экран».",
 
@@ -1020,6 +1030,8 @@ const TRANSLATIONS = {
     install_title: "📲 Neko Listaをデバイスにインストールしますか？",
     install_desc_direct: "通常のアプリと同じようにインストールされます。ストアは不要です。",
     install_confirm_btn: "インストール",
+    installing_text: "Neko Listaをインストール中… 最大1分ほどかかることがあります。この画面を閉じないでください。",
+    install_done_text: "✅ 完了！Neko Listaがデバイスに追加されました。",
     install_instructions_ios: "Safariのツールバーにある共有ボタン（上矢印の四角いアイコン）をタップし、「ホーム画面に追加」を選んでください。",
     install_instructions_other: "ブラウザのメニュー（⋮）を開き、「アプリをインストール」または「ホーム画面に追加」を選んでください。",
 

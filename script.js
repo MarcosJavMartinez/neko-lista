@@ -447,6 +447,8 @@ const installBackdrop = document.getElementById("install-backdrop");
 const btnInstallClose = document.getElementById("btn-install-close");
 const installInstructionsEl = document.getElementById("install-instructions");
 const btnInstallConfirm = document.getElementById("btn-install-confirm");
+const installProgressEl = document.getElementById("install-progress");
+const installProgressText = document.getElementById("install-progress-text");
 const btnShareApp = document.getElementById("btn-share-app");
 const toastEl = document.getElementById("toast");
 const themeOptionButtons = document.querySelectorAll(".theme-option");
@@ -1920,9 +1922,35 @@ window.addEventListener("beforeinstallprompt", (event) => {
   updateInstallButtonVisibility();
 });
 
+// Después de aceptar el cuadro del navegador, la instalación en sí puede
+// tardar hasta un minuto (en Android Chrome arma la app en los servidores de
+// Google) sin que se vea nada. Este aviso queda fijo hasta que llega
+// "appinstalled", para que nadie cierre pensando que se colgó.
+const INSTALL_PROGRESS_MAX_MS = 120000;
+let installProgressTimer = null;
+
+function showInstallProgress() {
+  clearTimeout(installProgressTimer);
+  installProgressText.textContent = t("installing_text");
+  installProgressEl.classList.remove("is-done");
+  installProgressEl.hidden = false;
+  installProgressTimer = setTimeout(hideInstallProgress, INSTALL_PROGRESS_MAX_MS);
+}
+
+function hideInstallProgress() {
+  clearTimeout(installProgressTimer);
+  installProgressEl.hidden = true;
+}
+
 window.addEventListener("appinstalled", () => {
   deferredInstallPrompt = null;
   updateInstallButtonVisibility();
+  if (!installProgressEl.hidden) {
+    clearTimeout(installProgressTimer);
+    installProgressText.textContent = t("install_done_text");
+    installProgressEl.classList.add("is-done");
+    installProgressTimer = setTimeout(hideInstallProgress, 6000);
+  }
 });
 
 btnInstallApp.addEventListener("click", openInstallModal);
@@ -1936,8 +1964,9 @@ btnInstallConfirm.addEventListener("click", async () => {
   const promptEvent = deferredInstallPrompt;
   closeInstallModal();
   promptEvent.prompt();
-  await promptEvent.userChoice;
+  const choice = await promptEvent.userChoice;
   deferredInstallPrompt = null;
+  if (choice && choice.outcome === "accepted") showInstallProgress();
   updateInstallButtonVisibility();
 });
 
