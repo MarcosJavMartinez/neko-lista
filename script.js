@@ -1902,15 +1902,11 @@ function updateInstallButtonVisibility() {
 function openInstallModal() {
   const ua = navigator.userAgent || "";
   const isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  // Con el prompt nativo disponible (Android/Chrome) se instala con un toque;
-  // sin él (iPhone, otros navegadores) solo se pueden explicar los pasos.
-  const canInstallDirectly = Boolean(deferredInstallPrompt);
-  installInstructionsEl.textContent = canInstallDirectly
-    ? t("install_desc_direct")
-    : isIOS
-      ? t("install_instructions_ios")
-      : t("install_instructions_other");
-  btnInstallConfirm.hidden = !canInstallDirectly;
+  // Solo iPhone/iPad no permite instalar por código: ahí se explican los
+  // pasos. En el resto se ofrece "Instalar" siempre; si el navegador todavía
+  // no habilitó el prompt nativo, el botón cae a las instrucciones manuales.
+  installInstructionsEl.textContent = isIOS ? t("install_instructions_ios") : t("install_desc_direct");
+  btnInstallConfirm.hidden = isIOS;
   installBackdrop.hidden = false;
 }
 
@@ -1932,7 +1928,11 @@ window.addEventListener("appinstalled", () => {
 btnInstallApp.addEventListener("click", openInstallModal);
 
 btnInstallConfirm.addEventListener("click", async () => {
-  if (!deferredInstallPrompt) return;
+  if (!deferredInstallPrompt) {
+    installInstructionsEl.textContent = t("install_instructions_other");
+    btnInstallConfirm.hidden = true;
+    return;
+  }
   const promptEvent = deferredInstallPrompt;
   closeInstallModal();
   promptEvent.prompt();
