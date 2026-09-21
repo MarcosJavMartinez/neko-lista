@@ -299,6 +299,7 @@
       </div>
 
       <div class="io-panel" data-io-panel="pdf" hidden>
+        <span class="local-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"></rect><path d="M8 11V7.5a4 4 0 0 1 8 0V11"></path></svg><span data-i18n="local_chip">Processed on your device</span></span>
         <p class="settings-desc" data-i18n="pdf_desc">Download your list as a clean PDF to print or share, or import products by reading the text of an existing PDF.</p>
         <div class="settings-backup-actions">
           <button type="button" id="btn-export-pdf" class="btn btn-secondary btn-small" data-i18n="export_pdf_btn">⬇️ Export to PDF</button>
@@ -311,6 +312,7 @@
       </div>
 
       <div class="io-panel" data-io-panel="imagen" hidden>
+        <span class="local-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"></rect><path d="M8 11V7.5a4 4 0 0 1 8 0V11"></path></svg><span data-i18n="local_chip">Processed on your device</span></span>
         <p class="settings-desc" data-i18n="image_desc">Export your list as a clean image to share on WhatsApp, or take a photo of a handwritten list or receipt and the app will try to read the products (it may take a moment and isn't always perfectly accurate).</p>
         <div class="settings-backup-actions">
           <button type="button" id="btn-export-image" class="btn btn-secondary btn-small" data-i18n="export_image_btn">⬇️ Export as image</button>
@@ -323,6 +325,7 @@
       </div>
 
       <div class="io-panel" data-io-panel="tecnico" hidden>
+        <span class="local-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"></rect><path d="M8 11V7.5a4 4 0 0 1 8 0V11"></path></svg><span data-i18n="local_chip">Processed on your device</span></span>
         <p class="settings-desc" data-i18n="tecnico_desc">A complete, exact backup of your list, in a technical format (JSON) meant for you, not for sharing. Unlike the other options, importing here replaces your entire current list.</p>
         <div class="settings-backup-actions">
           <button type="button" id="btn-export-data" class="btn btn-secondary btn-small" data-i18n="export_data_btn">⬇️ Export list</button>
@@ -340,9 +343,18 @@
           <div class="settings-backup-actions">
             <button type="button" id="btn-generate-code" class="btn btn-secondary btn-small" data-i18n="generate_code_btn">📱 Generate code</button>
           </div>
-          <div id="generated-code-box" class="generated-code-box" hidden>
-            <span class="generated-code" id="generated-code-value">------</span>
-            <p class="settings-desc" data-i18n="code_expiry_note">Valid for 15 minutes, works once.</p>
+          <div id="generated-code-box" class="generated-code-box" data-state="waiting" hidden>
+            <div class="code-live">
+              <div class="code-ring" aria-hidden="true">
+                <svg class="code-ring-svg" viewBox="0 0 44 44"><circle class="code-ring-track" cx="22" cy="22" r="19"></circle><circle class="code-ring-progress" id="code-ring-progress" cx="22" cy="22" r="19"></circle></svg>
+                <svg class="code-ring-icon code-ring-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2.5"></rect><path d="M8 11V7.5a4 4 0 0 1 8 0V11"></path></svg>
+                <svg class="code-ring-icon code-ring-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+              </div>
+              <div class="code-live-main">
+                <span class="generated-code" id="generated-code-value">------</span>
+                <p class="code-live-status" id="code-live-status" role="status" aria-live="polite"></p>
+              </div>
+            </div>
           </div>
           <p id="generate-code-status" class="settings-desc"></p>
         </div>

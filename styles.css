@@ -837,10 +837,6 @@ h1, h2,
   text-align: center;
 }
 
-.generated-code-box .settings-desc {
-  margin: 6px 0 0;
-}
-
 .generated-code {
   display: block;
   font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
@@ -849,6 +845,169 @@ h1, h2,
   letter-spacing: 0.25em;
   color: var(--color-primary-dark);
   user-select: all;
+  transition: opacity 0.3s ease;
+}
+
+/* Código en vivo: anillo que se vacía hasta que vence, candado mientras
+   espera y tilde cuando el otro dispositivo lo recibió y se borró. */
+.code-live {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+}
+
+.code-live-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.code-live-status {
+  position: relative;
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-text-muted);
+}
+
+.generated-code-box[data-state="waiting"] .code-live-status {
+  padding-left: 14px;
+}
+
+.generated-code-box[data-state="waiting"] .code-live-status::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  animation: code-pulse 1.4s ease-in-out infinite;
+}
+
+.generated-code-box[data-state="used"] .code-live-status {
+  color: var(--color-primary-dark);
+}
+
+.generated-code-box[data-state="used"] .generated-code,
+.generated-code-box[data-state="expired"] .generated-code {
+  opacity: 0.4;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.code-ring {
+  position: relative;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  color: var(--color-primary-dark);
+}
+
+.code-ring-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.code-ring-track,
+.code-ring-progress {
+  fill: none;
+  stroke-width: 3.5;
+}
+
+.code-ring-track {
+  stroke: var(--color-border);
+}
+
+.code-ring-progress {
+  stroke: var(--color-primary);
+  stroke-linecap: round;
+  stroke-dasharray: 119.4;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+}
+
+.code-ring-icon {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 22px;
+  height: 22px;
+}
+
+.code-ring-check {
+  display: none;
+}
+
+.generated-code-box[data-state="used"] .code-ring-lock {
+  display: none;
+}
+
+.generated-code-box[data-state="used"] .code-ring-check {
+  display: block;
+  animation: code-pop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+
+.generated-code-box[data-state="used"] .code-ring-progress {
+  stroke-dashoffset: 0 !important;
+}
+
+.generated-code-box[data-state="expired"] .code-ring {
+  color: var(--color-text-muted);
+}
+
+.generated-code-box[data-state="expired"] .code-ring-progress {
+  stroke: var(--color-border);
+}
+
+.local-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 8px;
+  padding: 3px 10px 3px 8px;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+@keyframes code-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+}
+
+@keyframes code-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .generated-code-box[data-state="waiting"] .code-live-status::before,
+  .generated-code-box[data-state="used"] .code-ring-check {
+    animation: none;
+  }
+
+  .code-ring-progress {
+    transition: none;
+  }
 }
 
 .code-receive-row {

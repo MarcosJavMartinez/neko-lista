@@ -2240,6 +2240,86 @@ inputImportData.addEventListener("change", () => {
   reader.readAsText(file);
 });
 
+// Código en vivo: en vez de explicar que "vale 15 minutos y se usa una vez",
+// la app lo muestra pasando: un anillo que se vacía, y en cuanto el otro
+// dispositivo lo recibe se pregunta al servidor (sin consumirlo) y aparece la
+// confirmación de que ya se borró. Si dice "recibida" y no fuiste vos, se nota.
+const CODE_POLL_MS = 5000;
+const CODE_RING_LENGTH = 119.4; // 2 * PI * r (r = 19 en el SVG)
+const codeRingProgress = document.getElementById("code-ring-progress");
+const codeLiveStatus = document.getElementById("code-live-status");
+let codeWatch = null;
+
+function formatCodeTime(totalSeconds) {
+  const safe = Math.max(0, Math.ceil(totalSeconds));
+  const minutes = Math.floor(safe / 60);
+  const seconds = String(safe % 60).padStart(2, "0");
+  return `${minutes}:${seconds}`;
+}
+
+function stopCodeWatch() {
+  if (!codeWatch) return;
+  clearInterval(codeWatch.tick);
+  clearInterval(codeWatch.poll);
+  codeWatch = null;
+}
+
+function setCodeState(state) {
+  generatedCodeBox.dataset.state = state;
+  if (state === "used") codeLiveStatus.textContent = t("code_live_used");
+  if (state === "expired") codeLiveStatus.textContent = t("code_live_expired");
+}
+
+function renderCodeCountdown() {
+  if (!codeWatch) return;
+  const remaining = (codeWatch.expiresAt - Date.now()) / 1000;
+  if (remaining <= 0) {
+    codeRingProgress.style.strokeDashoffset = String(CODE_RING_LENGTH);
+    setCodeState("expired");
+    stopCodeWatch();
+    return;
+  }
+  const spent = 1 - remaining / codeWatch.total;
+  codeRingProgress.style.strokeDashoffset = String(CODE_RING_LENGTH * spent);
+  codeLiveStatus.textContent = t("code_live_waiting", { time: formatCodeTime(remaining) });
+}
+
+async function checkCodeStillActive() {
+  const watch = codeWatch;
+  if (!watch || document.hidden) return;
+  try {
+    const response = await fetch(`${TRANSFER_API_URL}?check=${encodeURIComponent(watch.code)}`);
+    const result = await response.json();
+    // Se generó otro código mientras esperaba la respuesta: esta ya no vale.
+    if (codeWatch !== watch) return;
+    if (!response.ok || !result.ok || result.active !== false) return;
+    // Ya no existe en el servidor: si todavía quedaba tiempo, lo usaron.
+    const remaining = (watch.expiresAt - Date.now()) / 1000;
+    stopCodeWatch();
+    setCodeState(remaining > 10 ? "used" : "expired");
+  } catch (error) {
+    // Sin conexión un momento: se reintenta en la próxima vuelta.
+  }
+}
+
+function startCodeWatch(code, ttlSeconds) {
+  stopCodeWatch();
+  codeRingProgress.style.strokeDashoffset = "0";
+  generatedCodeBox.dataset.state = "waiting";
+  codeWatch = {
+    code,
+    total: ttlSeconds,
+    expiresAt: Date.now() + ttlSeconds * 1000,
+    tick: setInterval(renderCodeCountdown, 1000),
+    poll: setInterval(checkCodeStillActive, CODE_POLL_MS),
+  };
+  renderCodeCountdown();
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) checkCodeStillActive();
+});
+
 // Puente por código: manda/trae la lista a través de transfer.php en
 // nekotools.site, sin cuenta ni archivos. Ver README para el detalle del
 // endpoint (código corto, un solo uso, vence solo a los 15 minutos).
@@ -2247,12 +2327,14 @@ btnGenerateCode.addEventListener("click", async () => {
   if (products.length === 0) {
     generateCodeStatus.textContent = t("status_no_products_export");
     generatedCodeBox.hidden = true;
+    stopCodeWatch();
     return;
   }
 
   btnGenerateCode.disabled = true;
   generateCodeStatus.textContent = t("code_status_generating");
   generatedCodeBox.hidden = true;
+  stopCodeWatch();
 
   try {
     const response = await fetch(TRANSFER_API_URL, {
@@ -2267,6 +2349,7 @@ btnGenerateCode.addEventListener("click", async () => {
     generatedCodeValue.textContent = result.code;
     generatedCodeBox.hidden = false;
     generateCodeStatus.textContent = "";
+    startCodeWatch(result.code, Number(result.ttlSeconds) || 900);
   } catch (error) {
     console.error("No se pudo generar el código de transferencia.", error);
     generateCodeStatus.textContent = t("code_status_error_generate");
@@ -2301,7 +2384,7 @@ btnReceiveCode.addEventListener("click", async () => {
       saveToLocalStorage();
       mergeNewCatalogProducts();
       renderProducts();
-      receiveCodeStatus.textContent = "";
+      receiveCodeStatus.textContent = t("code_received_ok");
       inputReceiveCode.value = "";
     } else {
       receiveCodeStatus.textContent = "";
