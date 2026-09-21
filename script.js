@@ -446,6 +446,7 @@ const btnInstallApp = document.getElementById("btn-install-app");
 const installBackdrop = document.getElementById("install-backdrop");
 const btnInstallClose = document.getElementById("btn-install-close");
 const installInstructionsEl = document.getElementById("install-instructions");
+const installStepsEl = document.getElementById("install-steps");
 const btnInstallConfirm = document.getElementById("btn-install-confirm");
 const installProgressEl = document.getElementById("install-progress");
 const installProgressText = document.getElementById("install-progress-text");
@@ -2013,7 +2014,11 @@ function openInstallModal() {
   // Solo iPhone/iPad no permite instalar por código: ahí se explican los
   // pasos. En el resto se ofrece "Instalar" siempre; si el navegador todavía
   // no habilitó el prompt nativo, el botón cae a las instrucciones manuales.
-  installInstructionsEl.textContent = isIOS ? t("install_instructions_ios") : t("install_desc_direct");
+  // En iPhone/iPad se muestran los pasos con los íconos reales de iOS (funciona
+  // igual desde Safari o Chrome: el menú Compartir es el del sistema).
+  installStepsEl.hidden = !isIOS;
+  installInstructionsEl.hidden = isIOS;
+  if (!isIOS) installInstructionsEl.textContent = t("install_desc_direct");
   btnInstallConfirm.hidden = isIOS;
   installBackdrop.hidden = false;
 }
