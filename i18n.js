@@ -78,6 +78,7 @@ const TRANSLATIONS = {
     footer_made_with: "Hecho con ❤️ por Neko Tools",
     footer_support: "Apoyar el proyecto",
     footer_more_tools: "Más herramientas",
+    footer_privacy: "Privacidad",
     splash_by: "por",
 
     support_title: "☕ ¿Te sirve Neko Lista?",
@@ -267,6 +268,7 @@ const TRANSLATIONS = {
     footer_made_with: "Made with ❤️ by Neko Tools",
     footer_support: "Support the project",
     footer_more_tools: "More tools",
+    footer_privacy: "Privacy",
     splash_by: "by",
 
     support_title: "☕ Finding Neko Lista useful?",
@@ -456,6 +458,7 @@ const TRANSLATIONS = {
     footer_made_with: "Feito com ❤️ por Neko Tools",
     footer_support: "Apoiar o projeto",
     footer_more_tools: "Mais ferramentas",
+    footer_privacy: "Privacidade",
     splash_by: "por",
 
     support_title: "☕ O Neko Lista está sendo útil?",
@@ -645,6 +648,7 @@ const TRANSLATIONS = {
     footer_made_with: "Neko Tools tarafından ❤️ ile yapıldı",
     footer_support: "Projeyi destekle",
     footer_more_tools: "Daha fazla araç",
+    footer_privacy: "Gizlilik",
     splash_by: "tarafından",
 
     support_title: "☕ Neko Lista işine yarıyor mu?",
@@ -834,6 +838,7 @@ const TRANSLATIONS = {
     footer_made_with: "Сделано с ❤️ командой Neko Tools",
     footer_support: "Поддержать проект",
     footer_more_tools: "Другие инструменты",
+    footer_privacy: "Конфиденциальность",
     splash_by: "от",
 
     support_title: "☕ Neko Lista вам полезен?",
@@ -1023,6 +1028,7 @@ const TRANSLATIONS = {
     footer_made_with: "Neko Tools が ❤️ を込めて制作",
     footer_support: "プロジェクトを支援する",
     footer_more_tools: "その他のツール",
+    footer_privacy: "プライバシー",
     splash_by: "より",
 
     support_title: "☕ Neko Listaは役に立っていますか？",

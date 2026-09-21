@@ -1908,11 +1908,24 @@ a:focus-visible {
 .app-footer-links {
   margin: 0;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 2px 6px;
   font-size: 0.75rem;
   color: var(--color-text-muted);
+}
+
+/* En pantallas angostas los tres links se acomodan en varias líneas: los
+   separadores "·" quedarían sueltos al borde, así que se ocultan. */
+@media (max-width: 420px) {
+  .app-footer-links {
+    gap: 4px 14px;
+  }
+
+  .app-footer-links > span[aria-hidden="true"] {
+    display: none;
+  }
 }
 
 .app-footer-link {

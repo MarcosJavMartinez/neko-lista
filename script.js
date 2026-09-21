@@ -1986,7 +1986,10 @@ if (BRAND.websiteUrl) {
   websiteLink.target = "_blank";
   websiteLink.rel = "noopener";
   websiteLink.className = "app-footer-link";
-  websiteLink.textContent = footerMoreTools.textContent;
+  // Conserva la traducción: al reemplazar el <span> se perdía el data-i18n y
+  // el link quedaba en inglés en todos los idiomas.
+  websiteLink.dataset.i18n = "footer_more_tools";
+  websiteLink.textContent = t("footer_more_tools");
   footerMoreTools.replaceWith(websiteLink);
 }
 
