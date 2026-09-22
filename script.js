@@ -1631,11 +1631,17 @@ btnSoundToggle.addEventListener("click", () => {
 
 setSoundEnabled(isSoundEnabled());
 
+// Se guarda para que el próximo renderProducts() sepa a qué ítem (recién
+// creado desde cero, ya que se mueve entre pendientes y comprados) hay que
+// agregarle la animación de tildado, en vez de a todos los que se redibujan.
+let lastToggledId = null;
+
 function togglePurchased(id) {
   const product = findProduct(id);
   if (!product) return;
 
   product.purchased = !product.purchased;
+  lastToggledId = id;
   if (product.purchased) playPurchaseSound();
   else playUnpurchaseSound();
   saveToLocalStorage();
@@ -1761,6 +1767,11 @@ function createProductElement(product) {
 
   const checkbox = li.querySelector(".chk-purchased");
   checkbox.checked = product.purchased;
+
+  if (product.id === lastToggledId) {
+    li.querySelector(".checkbox-visual").classList.add(product.purchased ? "just-checked" : "just-unchecked");
+    lastToggledId = null;
+  }
 
   renderIconInto(li.querySelector(".product-icon"), product.icon || getProductIcon(product.name));
   li.querySelector(".product-qty-display").textContent = product.quantity;

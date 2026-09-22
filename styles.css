@@ -1805,6 +1805,54 @@ a:focus-visible {
   font-weight: 700;
 }
 
+/* Como el ítem se vuelve a armar entero al marcarlo (pasa de pendientes a
+   comprados), una transition normal nunca llega a jugar: el checkbox nace
+   ya tildado. Estas clases se agregan una sola vez, en el elemento recién
+   creado, para que la animación se vea igual que si hubiera sido en vivo. */
+@keyframes checkbox-pop {
+  0% {
+    transform: scale(0.7);
+  }
+  55% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes checkbox-mark-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes checkbox-unpop {
+  0% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.checkbox-visual.just-checked {
+  animation: checkbox-pop 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.checkbox-visual.just-checked::after {
+  animation: checkbox-mark-pop 200ms 60ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.checkbox-visual.just-unchecked {
+  animation: checkbox-unpop 200ms ease;
+}
+
 .product-icon {
   flex-shrink: 0;
   font-size: 1.5rem;
