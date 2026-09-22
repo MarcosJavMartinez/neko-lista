@@ -1583,19 +1583,16 @@ function setSoundEnabled(enabled) {
   }
 }
 
-function playPurchaseSound() {
+// Dos notas cortas, con un decaimiento rápido para que no se sienta invasivo
+// si se marcan o desmarcan varias seguidas.
+function playTwoNoteSound(notes) {
   if (!isSoundEnabled()) return;
   try {
     audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === "suspended") audioCtx.resume();
 
     const now = audioCtx.currentTime;
-    // Dos notas cortas y ascendentes (estilo "listo ✓"), con un decaimiento
-    // rápido para que no se sienta invasivo si se marcan varios seguidos.
-    [
-      { freq: 880, start: 0, duration: 0.09 },
-      { freq: 1318.5, start: 0.07, duration: 0.14 },
-    ].forEach(({ freq, start, duration }) => {
+    notes.forEach(({ freq, start, duration }) => {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "sine";
@@ -1612,6 +1609,22 @@ function playPurchaseSound() {
   }
 }
 
+// Ascendente al comprar (estilo "listo ✓"), descendente al desmarcar (las
+// mismas dos notas, al revés) para que se sienta como la acción opuesta.
+function playPurchaseSound() {
+  playTwoNoteSound([
+    { freq: 880, start: 0, duration: 0.09 },
+    { freq: 1318.5, start: 0.07, duration: 0.14 },
+  ]);
+}
+
+function playUnpurchaseSound() {
+  playTwoNoteSound([
+    { freq: 1318.5, start: 0, duration: 0.09 },
+    { freq: 880, start: 0.07, duration: 0.14 },
+  ]);
+}
+
 btnSoundToggle.addEventListener("click", () => {
   setSoundEnabled(btnSoundToggle.getAttribute("aria-checked") !== "true");
 });
@@ -1624,6 +1637,7 @@ function togglePurchased(id) {
 
   product.purchased = !product.purchased;
   if (product.purchased) playPurchaseSound();
+  else playUnpurchaseSound();
   saveToLocalStorage();
   renderProducts();
 }
