@@ -1691,11 +1691,32 @@ setSoundEnabled(isSoundEnabled());
 
 const MAX_SOUND_BYTES = 250 * 1024;
 
-function setupCustomSoundControls({ input, playBtn, resetBtn, statusEl, storageKey, playFn }) {
+const RECORD_MAX_SECONDS = 5;
+const canRecordAudio = Boolean(window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+function setupCustomSoundControls({ input, playBtn, recordBtn, resetBtn, statusEl, storageKey, playFn }) {
+  let defaultStatusText = "";
+  let mediaRecorder = null;
+  let recordTimer = null;
+
   function refresh() {
     const hasCustom = Boolean(safeGetItem(storageKey));
     resetBtn.hidden = !hasCustom;
-    statusEl.textContent = hasCustom ? t("sound_custom_status") : "";
+    defaultStatusText = hasCustom ? t("sound_custom_status") : "";
+    statusEl.textContent = defaultStatusText;
+  }
+
+  // Compartido por "subir archivo" y "grabar": lo único que cambia es de
+  // dónde sale el data URL con el audio.
+  function saveCustomSound(dataUrl) {
+    try {
+      localStorage.setItem(storageKey, dataUrl);
+    } catch (error) {
+      console.error("No se pudo guardar el sonido.", error);
+      alert(t("alert_sound_too_heavy"));
+      return;
+    }
+    refresh();
   }
 
   input.addEventListener("change", () => {
@@ -1722,16 +1743,8 @@ function setupCustomSoundControls({ input, playBtn, resetBtn, statusEl, storageK
 
     const reader = new FileReader();
     reader.onload = () => {
-      try {
-        localStorage.setItem(storageKey, reader.result);
-      } catch (error) {
-        console.error("No se pudo guardar el sonido.", error);
-        alert(t("alert_sound_too_heavy"));
-        input.value = "";
-        return;
-      }
+      saveCustomSound(reader.result);
       input.value = "";
-      refresh();
     };
     reader.onerror = () => {
       alert(t("alert_sound_load_error"));
@@ -1751,12 +1764,78 @@ function setupCustomSoundControls({ input, playBtn, resetBtn, statusEl, storageK
 
   playBtn.addEventListener("click", playFn);
 
+  if (canRecordAudio && recordBtn) {
+    recordBtn.hidden = false;
+
+    function stopRecording() {
+      clearInterval(recordTimer);
+      recordTimer = null;
+      recordBtn.classList.remove("btn-recording");
+      recordBtn.textContent = t("sound_record_btn");
+      if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+    }
+
+    recordBtn.addEventListener("click", async () => {
+      if (mediaRecorder && mediaRecorder.state === "recording") {
+        stopRecording();
+        return;
+      }
+
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (error) {
+        console.error("No se pudo acceder al micrófono.", error);
+        alert(t("alert_mic_denied"));
+        return;
+      }
+
+      const chunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.addEventListener("dataavailable", (event) => {
+        if (event.data.size > 0) chunks.push(event.data);
+      });
+      mediaRecorder.addEventListener("stop", () => {
+        stream.getTracks().forEach((track) => track.stop());
+        const blob = new Blob(chunks, { type: mediaRecorder.mimeType || "audio/webm" });
+        if (blob.size > MAX_SOUND_BYTES) {
+          alert(t("alert_sound_too_heavy"));
+          statusEl.textContent = defaultStatusText;
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => saveCustomSound(reader.result);
+        reader.onerror = () => {
+          alert(t("alert_sound_load_error"));
+          statusEl.textContent = defaultStatusText;
+        };
+        reader.readAsDataURL(blob);
+      });
+
+      mediaRecorder.start();
+      recordBtn.classList.add("btn-recording");
+      recordBtn.textContent = t("sound_record_stop_btn");
+
+      let remaining = RECORD_MAX_SECONDS;
+      statusEl.textContent = t("sound_recording_status", { seconds: remaining });
+      recordTimer = setInterval(() => {
+        remaining -= 1;
+        if (remaining <= 0) {
+          stopRecording();
+          return;
+        }
+        statusEl.textContent = t("sound_recording_status", { seconds: remaining });
+      }, 1000);
+    });
+  }
+
   refresh();
 }
 
 setupCustomSoundControls({
   input: document.getElementById("input-sound-check"),
   playBtn: document.getElementById("btn-sound-check-play"),
+  recordBtn: document.getElementById("btn-sound-check-record"),
   resetBtn: document.getElementById("btn-sound-check-reset"),
   statusEl: document.getElementById("sound-check-status"),
   storageKey: SOUND_CHECK_CUSTOM_KEY,
@@ -1766,6 +1845,7 @@ setupCustomSoundControls({
 setupCustomSoundControls({
   input: document.getElementById("input-sound-uncheck"),
   playBtn: document.getElementById("btn-sound-uncheck-play"),
+  recordBtn: document.getElementById("btn-sound-uncheck-record"),
   resetBtn: document.getElementById("btn-sound-uncheck-reset"),
   statusEl: document.getElementById("sound-uncheck-status"),
   storageKey: SOUND_UNCHECK_CUSTOM_KEY,
