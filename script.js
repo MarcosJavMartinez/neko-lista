@@ -27,6 +27,8 @@ const BG_COLOR_KEY = "listaCompras.bgColor";
 const PALETTE_KEY = "listaCompras.palette";
 const CUSTOM_COLOR_KEY = "listaCompras.customColor";
 const SOUND_ENABLED_KEY = "listaCompras.soundEnabled";
+const SOUND_CHECK_CUSTOM_KEY = "listaCompras.soundCheckCustom";
+const SOUND_UNCHECK_CUSTOM_KEY = "listaCompras.soundUncheckCustom";
 
 const SVG_ICON_SUN =
   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
@@ -1611,18 +1613,70 @@ function playTwoNoteSound(notes) {
 
 // Ascendente al comprar (estilo "listo ✓"), descendente al desmarcar (las
 // mismas dos notas, al revés) para que se sienta como la acción opuesta.
+const DEFAULT_CHECK_NOTES = [
+  { freq: 880, start: 0, duration: 0.09 },
+  { freq: 1318.5, start: 0.07, duration: 0.14 },
+];
+const DEFAULT_UNCHECK_NOTES = [
+  { freq: 1318.5, start: 0, duration: 0.09 },
+  { freq: 880, start: 0.07, duration: 0.14 },
+];
+
+// Decodifica el data URL guardado (lo mismo que ya se hace con la imagen de
+// fondo personalizada, pero para audio) y lo reproduce entero, sin dejarlo
+// en caché: son archivos chicos, así que decodificar en cada toque no se
+// nota, y evita líos con buffers que algunos navegadores dejan inservibles
+// después de la primera decodificación.
+function playStoredSound(dataUrl) {
+  return new Promise((resolve, reject) => {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      const base64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      audioCtx.decodeAudioData(
+        bytes.buffer,
+        (buffer) => {
+          const source = audioCtx.createBufferSource();
+          source.buffer = buffer;
+          source.connect(audioCtx.destination);
+          source.start();
+          resolve();
+        },
+        reject
+      );
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
 function playPurchaseSound() {
-  playTwoNoteSound([
-    { freq: 880, start: 0, duration: 0.09 },
-    { freq: 1318.5, start: 0.07, duration: 0.14 },
-  ]);
+  if (!isSoundEnabled()) return;
+  const custom = safeGetItem(SOUND_CHECK_CUSTOM_KEY);
+  if (custom) {
+    playStoredSound(custom).catch((error) => {
+      console.error("No se pudo reproducir el sonido de tildar, uso el de por defecto.", error);
+      playTwoNoteSound(DEFAULT_CHECK_NOTES);
+    });
+    return;
+  }
+  playTwoNoteSound(DEFAULT_CHECK_NOTES);
 }
 
 function playUnpurchaseSound() {
-  playTwoNoteSound([
-    { freq: 1318.5, start: 0, duration: 0.09 },
-    { freq: 880, start: 0.07, duration: 0.14 },
-  ]);
+  if (!isSoundEnabled()) return;
+  const custom = safeGetItem(SOUND_UNCHECK_CUSTOM_KEY);
+  if (custom) {
+    playStoredSound(custom).catch((error) => {
+      console.error("No se pudo reproducir el sonido de destildar, uso el de por defecto.", error);
+      playTwoNoteSound(DEFAULT_UNCHECK_NOTES);
+    });
+    return;
+  }
+  playTwoNoteSound(DEFAULT_UNCHECK_NOTES);
 }
 
 btnSoundToggle.addEventListener("click", () => {
@@ -1630,6 +1684,86 @@ btnSoundToggle.addEventListener("click", () => {
 });
 
 setSoundEnabled(isSoundEnabled());
+
+/* ==========================================================================
+   Sonido personalizado (subir un archivo propio o volver al de por defecto)
+   ========================================================================== */
+
+const MAX_SOUND_BYTES = 250 * 1024;
+
+function setupCustomSoundControls({ input, playBtn, resetBtn, statusEl, storageKey, playFn }) {
+  function refresh() {
+    const hasCustom = Boolean(safeGetItem(storageKey));
+    resetBtn.hidden = !hasCustom;
+    statusEl.textContent = hasCustom ? t("sound_custom_status") : "";
+  }
+
+  input.addEventListener("change", () => {
+    const file = input.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("audio/")) {
+      alert(t("alert_choose_audio"));
+      input.value = "";
+      return;
+    }
+    if (file.size > MAX_SOUND_BYTES) {
+      alert(t("alert_sound_too_heavy"));
+      input.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        localStorage.setItem(storageKey, reader.result);
+      } catch (error) {
+        console.error("No se pudo guardar el sonido.", error);
+        alert(t("alert_sound_too_heavy"));
+        input.value = "";
+        return;
+      }
+      input.value = "";
+      refresh();
+    };
+    reader.onerror = () => {
+      alert(t("alert_sound_load_error"));
+      input.value = "";
+    };
+    reader.readAsDataURL(file);
+  });
+
+  resetBtn.addEventListener("click", () => {
+    try {
+      localStorage.removeItem(storageKey);
+    } catch (error) {
+      console.error("No se pudo restablecer el sonido.", error);
+    }
+    refresh();
+  });
+
+  playBtn.addEventListener("click", playFn);
+
+  refresh();
+}
+
+setupCustomSoundControls({
+  input: document.getElementById("input-sound-check"),
+  playBtn: document.getElementById("btn-sound-check-play"),
+  resetBtn: document.getElementById("btn-sound-check-reset"),
+  statusEl: document.getElementById("sound-check-status"),
+  storageKey: SOUND_CHECK_CUSTOM_KEY,
+  playFn: playPurchaseSound,
+});
+
+setupCustomSoundControls({
+  input: document.getElementById("input-sound-uncheck"),
+  playBtn: document.getElementById("btn-sound-uncheck-play"),
+  resetBtn: document.getElementById("btn-sound-uncheck-reset"),
+  statusEl: document.getElementById("sound-uncheck-status"),
+  storageKey: SOUND_UNCHECK_CUSTOM_KEY,
+  playFn: playUnpurchaseSound,
+});
 
 // Se guarda para que el próximo renderProducts() sepa a qué ítem (recién
 // creado desde cero, ya que se mueve entre pendientes y comprados) hay que

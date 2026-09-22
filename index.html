@@ -276,6 +276,32 @@
         </button>
       </div>
       <p class="settings-desc" data-i18n="sound_desc">A short sound plays when you mark a product as bought.</p>
+
+      <div class="sound-custom-row">
+        <span class="sound-custom-label" data-i18n="sound_check_label">Sound when checking off</span>
+        <div class="settings-backup-actions">
+          <button type="button" id="btn-sound-check-play" class="btn btn-secondary btn-small" data-i18n="sound_play_btn">🔊 Listen</button>
+          <label class="btn btn-secondary btn-small settings-import-label">
+            <span data-i18n="sound_upload_btn">⬆️ Upload sound</span>
+            <input type="file" id="input-sound-check" accept="audio/*" hidden />
+          </label>
+          <button type="button" id="btn-sound-check-reset" class="btn btn-secondary btn-small" data-i18n="sound_reset_btn" hidden>↺ Default sound</button>
+        </div>
+        <p id="sound-check-status" class="settings-desc"></p>
+      </div>
+
+      <div class="sound-custom-row">
+        <span class="sound-custom-label" data-i18n="sound_uncheck_label">Sound when unchecking</span>
+        <div class="settings-backup-actions">
+          <button type="button" id="btn-sound-uncheck-play" class="btn btn-secondary btn-small" data-i18n="sound_play_btn">🔊 Listen</button>
+          <label class="btn btn-secondary btn-small settings-import-label">
+            <span data-i18n="sound_upload_btn">⬆️ Upload sound</span>
+            <input type="file" id="input-sound-uncheck" accept="audio/*" hidden />
+          </label>
+          <button type="button" id="btn-sound-uncheck-reset" class="btn btn-secondary btn-small" data-i18n="sound_reset_btn" hidden>↺ Default sound</button>
+        </div>
+        <p id="sound-uncheck-status" class="settings-desc"></p>
+      </div>
     </div>
 
     <div class="settings-row">
