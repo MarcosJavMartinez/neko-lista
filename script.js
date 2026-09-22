@@ -1702,7 +1702,14 @@ function setupCustomSoundControls({ input, playBtn, resetBtn, statusEl, storageK
     const file = input.files[0];
     if (!file) return;
 
-    if (!file.type.startsWith("audio/")) {
+    // El selector de archivos de Android suele reportar el tipo de un audio
+    // como vacío o "application/octet-stream" en vez de "audio/algo" (pasaba
+    // con archivos elegidos desde "Archivos", no desde una app de música).
+    // Ahí se acepta igual si la extensión es de audio conocida, en vez de
+    // rechazar el archivo sin explicar bien por qué.
+    const looksLikeAudioByType = file.type.startsWith("audio/");
+    const looksLikeAudioByName = /\.(mp3|wav|ogg|oga|m4a|aac|flac|opus|weba|wma|amr|3gp)$/i.test(file.name || "");
+    if (!looksLikeAudioByType && !looksLikeAudioByName) {
       alert(t("alert_choose_audio"));
       input.value = "";
       return;
