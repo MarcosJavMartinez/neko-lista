@@ -447,6 +447,8 @@ const installBackdrop = document.getElementById("install-backdrop");
 const btnInstallClose = document.getElementById("btn-install-close");
 const installInstructionsEl = document.getElementById("install-instructions");
 const installStepsEl = document.getElementById("install-steps");
+const installChromeIosStepsEl = document.getElementById("install-chrome-ios-steps");
+const installMacSafariStepsEl = document.getElementById("install-mac-safari-steps");
 const btnInstallConfirm = document.getElementById("btn-install-confirm");
 const installProgressEl = document.getElementById("install-progress");
 const installProgressText = document.getElementById("install-progress-text");
@@ -2008,18 +2010,56 @@ function updateInstallButtonVisibility() {
   btnInstallApp.hidden = isRunningStandalone();
 }
 
-function openInstallModal() {
+// A diferencia de Android/Chrome de escritorio, iOS no deja instalar por
+// código: el camino cambia según el navegador (en Chrome para iOS "Añadir a
+// pantalla de inicio" está en un menú distinto al de Safari, no detrás del
+// mismo botón Compartir). Para no mezclar navegadores en un solo texto con
+// pasos condicionales ("si no ves la opción..."), cada combinación real
+// tiene su propia lista de pasos exactos, sin nada que adivinar.
+function detectInstallPlatform() {
   const ua = navigator.userAgent || "";
-  const isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  // Solo iPhone/iPad no permite instalar por código: ahí se explican los
-  // pasos. En el resto se ofrece "Instalar" siempre; si el navegador todavía
-  // no habilitó el prompt nativo, el botón cae a las instrucciones manuales.
-  // En iPhone/iPad se muestran los pasos con los íconos reales de iOS (funciona
-  // igual desde Safari o Chrome: el menú Compartir es el del sistema).
-  installStepsEl.hidden = !isIOS;
-  installInstructionsEl.hidden = isIOS;
-  if (!isIOS) installInstructionsEl.textContent = t("install_desc_direct");
-  btnInstallConfirm.hidden = isIOS;
+  const isIOSDevice = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isChromeIOS = /CriOS/i.test(ua);
+  const isFirefoxIOS = /FxiOS/i.test(ua);
+  const isEdgeIOS = /EdgiOS/i.test(ua);
+  const isMacDesktop = /Macintosh/i.test(ua) && !isIOSDevice;
+  const isChromeOrEdgeOrFirefox = /Chrome\/|Edg\/|Firefox\//i.test(ua);
+  const isAndroid = /Android/i.test(ua);
+
+  if (isIOSDevice) {
+    if (isChromeIOS) return "ios-chrome";
+    if (isFirefoxIOS || isEdgeIOS) return "ios-other";
+    return "ios-safari";
+  }
+  if (isMacDesktop && !isChromeOrEdgeOrFirefox) return "mac-safari";
+  if (isAndroid) return "android-menu";
+  return "desktop-other";
+}
+
+function openInstallModal() {
+  installStepsEl.hidden = true;
+  installChromeIosStepsEl.hidden = true;
+  installMacSafariStepsEl.hidden = true;
+  installInstructionsEl.hidden = true;
+  btnInstallConfirm.hidden = true;
+
+  if (deferredInstallPrompt) {
+    installInstructionsEl.hidden = false;
+    installInstructionsEl.textContent = t("install_desc_direct");
+    btnInstallConfirm.hidden = false;
+    installBackdrop.hidden = false;
+    return;
+  }
+
+  const platform = detectInstallPlatform();
+  const stepsEl = { "ios-safari": installStepsEl, "ios-chrome": installChromeIosStepsEl, "mac-safari": installMacSafariStepsEl }[platform];
+  if (stepsEl) {
+    stepsEl.hidden = false;
+  } else {
+    installInstructionsEl.hidden = false;
+    const msgKey = { "ios-other": "install_ios_other_msg", "android-menu": "install_android_menu_msg" }[platform] || "install_desktop_other_msg";
+    installInstructionsEl.textContent = t(msgKey);
+  }
   installBackdrop.hidden = false;
 }
 
@@ -2068,7 +2108,10 @@ btnInstallApp.addEventListener("click", openInstallModal);
 
 btnInstallConfirm.addEventListener("click", async () => {
   if (!deferredInstallPrompt) {
-    installInstructionsEl.textContent = t("install_instructions_other");
+    // Esto solo pasa si el prompt nativo desapareció justo entre mostrar el
+    // botón y tocarlo (Android o escritorio Chrome/Edge, únicos casos donde
+    // se llega a ver este botón): el menú del navegador es el respaldo.
+    installInstructionsEl.textContent = t("install_android_menu_msg");
     btnInstallConfirm.hidden = true;
     return;
   }
