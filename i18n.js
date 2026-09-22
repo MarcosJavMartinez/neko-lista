@@ -115,6 +115,9 @@ const TRANSLATIONS = {
 
     settings_title: "Configuración",
     close_settings_aria: "Cerrar configuración",
+    sound_label: "Sonido",
+    sound_toggle_aria: "Reproducir un sonido al marcar un producto como comprado",
+    sound_desc: "Suena un sonido corto cuando marcás un producto como comprado.",
     theme_label: "Tema",
     theme_aria: "Elegir tema",
     theme_auto: "Auto",
@@ -322,6 +325,9 @@ const TRANSLATIONS = {
 
     settings_title: "Settings",
     close_settings_aria: "Close settings",
+    sound_label: "Sound",
+    sound_toggle_aria: "Play a sound when you check off a product",
+    sound_desc: "A short sound plays when you mark a product as bought.",
     theme_label: "Theme",
     theme_aria: "Choose theme",
     theme_auto: "Auto",
@@ -529,6 +535,9 @@ const TRANSLATIONS = {
 
     settings_title: "Configurações",
     close_settings_aria: "Fechar configurações",
+    sound_label: "Som",
+    sound_toggle_aria: "Tocar um som ao marcar um produto como comprado",
+    sound_desc: "Um som curto toca quando você marca um produto como comprado.",
     theme_label: "Tema",
     theme_aria: "Escolher tema",
     theme_auto: "Auto",
@@ -736,6 +745,9 @@ const TRANSLATIONS = {
 
     settings_title: "Ayarlar",
     close_settings_aria: "Ayarları kapat",
+    sound_label: "Ses",
+    sound_toggle_aria: "Bir ürünü satın alındı olarak işaretlediğinde ses çal",
+    sound_desc: "Bir ürünü satın alındı olarak işaretlediğinde kısa bir ses çalar.",
     theme_label: "Tema",
     theme_aria: "Tema seç",
     theme_auto: "Otomatik",
@@ -943,6 +955,9 @@ const TRANSLATIONS = {
 
     settings_title: "Настройки",
     close_settings_aria: "Закрыть настройки",
+    sound_label: "Звук",
+    sound_toggle_aria: "Воспроизводить звук при отметке товара как купленного",
+    sound_desc: "Короткий звук звучит, когда вы отмечаете товар как купленный.",
     theme_label: "Тема",
     theme_aria: "Выбрать тему",
     theme_auto: "Авто",
@@ -1150,6 +1165,9 @@ const TRANSLATIONS = {
 
     settings_title: "設定",
     close_settings_aria: "設定を閉じる",
+    sound_label: "サウンド",
+    sound_toggle_aria: "商品を購入済みにしたときに音を鳴らす",
+    sound_desc: "商品を購入済みにすると短い音が鳴ります。",
     theme_label: "テーマ",
     theme_aria: "テーマを選択",
     theme_auto: "自動",

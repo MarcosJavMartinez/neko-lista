@@ -26,6 +26,7 @@ const THEME_KEY = "listaCompras.theme";
 const BG_COLOR_KEY = "listaCompras.bgColor";
 const PALETTE_KEY = "listaCompras.palette";
 const CUSTOM_COLOR_KEY = "listaCompras.customColor";
+const SOUND_ENABLED_KEY = "listaCompras.soundEnabled";
 
 const SVG_ICON_SUN =
   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
@@ -455,6 +456,7 @@ const installProgressText = document.getElementById("install-progress-text");
 const btnShareApp = document.getElementById("btn-share-app");
 const toastEl = document.getElementById("toast");
 const themeOptionButtons = document.querySelectorAll(".theme-option");
+const btnSoundToggle = document.getElementById("btn-sound-toggle");
 const btnExportData = document.getElementById("btn-export-data");
 const inputImportData = document.getElementById("input-import-data");
 const ioTabButtons = document.querySelectorAll(".io-tab");
@@ -1560,11 +1562,68 @@ function deleteProduct(id) {
   renderProducts();
 }
 
+/* ==========================================================================
+   Sonido al comprar
+   ========================================================================== */
+
+// Sintetizado con Web Audio en vez de un archivo de audio: no pesa nada, no
+// depende de la red y funciona offline desde el primer segundo.
+let audioCtx = null;
+
+function isSoundEnabled() {
+  return safeGetItem(SOUND_ENABLED_KEY) !== "false";
+}
+
+function setSoundEnabled(enabled) {
+  btnSoundToggle.setAttribute("aria-checked", String(enabled));
+  try {
+    localStorage.setItem(SOUND_ENABLED_KEY, String(enabled));
+  } catch (error) {
+    console.error("No se pudo guardar la preferencia de sonido.", error);
+  }
+}
+
+function playPurchaseSound() {
+  if (!isSoundEnabled()) return;
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+
+    const now = audioCtx.currentTime;
+    // Dos notas cortas y ascendentes (estilo "listo ✓"), con un decaimiento
+    // rápido para que no se sienta invasivo si se marcan varios seguidos.
+    [
+      { freq: 880, start: 0, duration: 0.09 },
+      { freq: 1318.5, start: 0.07, duration: 0.14 },
+    ].forEach(({ freq, start, duration }) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, now + start);
+      gain.gain.linearRampToValueAtTime(0.18, now + start + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + start + duration);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(now + start);
+      osc.stop(now + start + duration + 0.02);
+    });
+  } catch (error) {
+    console.error("No se pudo reproducir el sonido.", error);
+  }
+}
+
+btnSoundToggle.addEventListener("click", () => {
+  setSoundEnabled(btnSoundToggle.getAttribute("aria-checked") !== "true");
+});
+
+setSoundEnabled(isSoundEnabled());
+
 function togglePurchased(id) {
   const product = findProduct(id);
   if (!product) return;
 
   product.purchased = !product.purchased;
+  if (product.purchased) playPurchaseSound();
   saveToLocalStorage();
   renderProducts();
 }
