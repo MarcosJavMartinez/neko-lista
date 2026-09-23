@@ -2034,9 +2034,11 @@ soundPresetButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
     const preset = btn.dataset.soundPreset;
     setSoundPreset(preset);
-    // Suena apenas se elige, así se puede distinguir un timbre de otro sin
-    // tener que ir hasta el botón "Escuchar" de cada evento.
+    // Suena (y, si está activada, vibra) apenas se elige, así se puede
+    // distinguir un timbre de otro sin tener que ir hasta el botón
+    // "Escuchar" de cada evento.
     playTwoNoteSound(checkNotesFor(preset), preset);
+    vibrateForPurchase();
   });
 });
 
@@ -2051,7 +2053,7 @@ const MAX_SOUND_BYTES = 250 * 1024;
 const RECORD_MAX_SECONDS = 5;
 const canRecordAudio = Boolean(window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 
-function setupCustomSoundControls({ input, playBtn, recordBtn, resetBtn, statusEl, storageKey, playFn }) {
+function setupCustomSoundControls({ input, playBtn, recordBtn, resetBtn, statusEl, storageKey, playFn, vibrateFn }) {
   let defaultStatusText = "";
   let mediaRecorder = null;
   let recordTimer = null;
@@ -2119,7 +2121,10 @@ function setupCustomSoundControls({ input, playBtn, recordBtn, resetBtn, statusE
     refresh();
   });
 
-  playBtn.addEventListener("click", playFn);
+  playBtn.addEventListener("click", () => {
+    playFn();
+    vibrateFn();
+  });
 
   if (canRecordAudio && recordBtn) {
     recordBtn.hidden = false;
@@ -2197,6 +2202,7 @@ setupCustomSoundControls({
   statusEl: document.getElementById("sound-check-status"),
   storageKey: SOUND_CHECK_CUSTOM_KEY,
   playFn: playPurchaseSound,
+  vibrateFn: vibrateForPurchase,
 });
 
 setupCustomSoundControls({
@@ -2207,6 +2213,7 @@ setupCustomSoundControls({
   statusEl: document.getElementById("sound-uncheck-status"),
   storageKey: SOUND_UNCHECK_CUSTOM_KEY,
   playFn: playUnpurchaseSound,
+  vibrateFn: vibrateForUnpurchase,
 });
 
 // Se guarda para que el próximo renderProducts() sepa a qué ítem (recién
