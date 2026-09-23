@@ -27,6 +27,7 @@ const BG_COLOR_KEY = "listaCompras.bgColor";
 const PALETTE_KEY = "listaCompras.palette";
 const CUSTOM_COLOR_KEY = "listaCompras.customColor";
 const SOUND_ENABLED_KEY = "listaCompras.soundEnabled";
+const VIBRATION_ENABLED_KEY = "listaCompras.vibrationEnabled";
 const SOUND_CHECK_CUSTOM_KEY = "listaCompras.soundCheckCustom";
 const SOUND_UNCHECK_CUSTOM_KEY = "listaCompras.soundUncheckCustom";
 const SOUND_PRESET_KEY = "listaCompras.soundPreset";
@@ -460,6 +461,8 @@ const btnShareApp = document.getElementById("btn-share-app");
 const toastEl = document.getElementById("toast");
 const themeOptionButtons = document.querySelectorAll(".theme-option");
 const btnSoundToggle = document.getElementById("btn-sound-toggle");
+const vibrationSettingsRow = document.getElementById("vibration-settings-row");
+const btnVibrationToggle = document.getElementById("btn-vibration-toggle");
 const soundPresetButtons = document.querySelectorAll(".sound-preset-option");
 const btnExportData = document.getElementById("btn-export-data");
 const inputImportData = document.getElementById("input-import-data");
@@ -1961,6 +1964,49 @@ btnSoundToggle.addEventListener("click", () => {
 
 setSoundEnabled(isSoundEnabled());
 
+/* ==========================================================================
+   Vibración al tildar/destildar
+   ========================================================================== */
+
+// Solo existe en Android: Safari (y por lo tanto Chrome, Firefox, etc. en
+// iOS, que por política de Apple usan el motor de Safari por dentro) nunca
+// implementó la Vibration API. El interruptor directamente no se muestra
+// donde no serviría de nada.
+const canVibrate = "vibrate" in navigator;
+
+function isVibrationEnabled() {
+  return canVibrate && safeGetItem(VIBRATION_ENABLED_KEY) === "true";
+}
+
+function setVibrationEnabled(enabled) {
+  btnVibrationToggle.setAttribute("aria-checked", String(enabled));
+  try {
+    localStorage.setItem(VIBRATION_ENABLED_KEY, String(enabled));
+  } catch (error) {
+    console.error("No se pudo guardar la preferencia de vibración.", error);
+  }
+}
+
+// Un toque cortito al tildar; dos más breves al destildar, el mismo criterio
+// "acción opuesta" que ya usan los sonidos.
+function vibrateForPurchase() {
+  if (!isVibrationEnabled()) return;
+  navigator.vibrate(15);
+}
+
+function vibrateForUnpurchase() {
+  if (!isVibrationEnabled()) return;
+  navigator.vibrate([10, 25, 10]);
+}
+
+if (canVibrate) {
+  vibrationSettingsRow.hidden = false;
+  btnVibrationToggle.addEventListener("click", () => {
+    setVibrationEnabled(btnVibrationToggle.getAttribute("aria-checked") !== "true");
+  });
+  setVibrationEnabled(isVibrationEnabled());
+}
+
 // Timbre de las dos notas de por defecto: no afecta a un evento (tildar o
 // destildar) que ya tenga un sonido propio grabado o cargado.
 function getSoundPreset() {
@@ -2174,8 +2220,13 @@ function togglePurchased(id) {
 
   product.purchased = !product.purchased;
   lastToggledId = id;
-  if (product.purchased) playPurchaseSound();
-  else playUnpurchaseSound();
+  if (product.purchased) {
+    playPurchaseSound();
+    vibrateForPurchase();
+  } else {
+    playUnpurchaseSound();
+    vibrateForUnpurchase();
+  }
   saveToLocalStorage();
   renderProducts();
 }
