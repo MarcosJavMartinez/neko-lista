@@ -28,6 +28,7 @@ const PALETTE_KEY = "listaCompras.palette";
 const CUSTOM_COLOR_KEY = "listaCompras.customColor";
 const SOUND_ENABLED_KEY = "listaCompras.soundEnabled";
 const VIBRATION_ENABLED_KEY = "listaCompras.vibrationEnabled";
+const ONBOARDING_SEEN_KEY = "listaCompras.onboardingSeen";
 const SOUND_CHECK_CUSTOM_KEY = "listaCompras.soundCheckCustom";
 const SOUND_UNCHECK_CUSTOM_KEY = "listaCompras.soundUncheckCustom";
 const SOUND_PRESET_KEY = "listaCompras.soundPreset";
@@ -440,6 +441,14 @@ const langOptionsEl = document.getElementById("lang-options");
 const btnSettingsToggle = document.getElementById("btn-settings-toggle");
 const settingsBackdrop = document.getElementById("settings-backdrop");
 const btnSettingsClose = document.getElementById("btn-settings-close");
+const btnOnboardingReplay = document.getElementById("btn-onboarding-replay");
+const onboardingBackdrop = document.getElementById("onboarding-backdrop");
+const btnOnboardingClose = document.getElementById("btn-onboarding-close");
+const btnOnboardingBack = document.getElementById("btn-onboarding-back");
+const btnOnboardingSkip = document.getElementById("btn-onboarding-skip");
+const btnOnboardingNext = document.getElementById("btn-onboarding-next");
+const onboardingStepEls = Array.from(document.querySelectorAll(".onboarding-step"));
+const onboardingDotEls = Array.from(document.querySelectorAll(".onboarding-dot"));
 const supportBackdrop = document.getElementById("support-backdrop");
 const btnSupportProject = document.getElementById("btn-support-project");
 const btnFooterSupport = document.getElementById("btn-footer-support");
@@ -2622,6 +2631,7 @@ function onLanguageChanged() {
   updateBgImageButtons(getSavedBgImageChoice());
   updateSortPriceButton();
   renderProducts();
+  updateOnboardingNextLabel();
 }
 
 function openSupportModal() {
@@ -2642,6 +2652,82 @@ supportBackdrop.addEventListener("click", (event) => {
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !supportBackdrop.hidden) closeSupportModal();
+});
+
+// Tutorial de bienvenida: se muestra solo la primera vez (justo después del
+// splash), y queda disponible para volver a verlo desde Ajustes.
+const ONBOARDING_TOTAL_STEPS = onboardingStepEls.length;
+let onboardingStepIndex = 1;
+
+function hasSeenOnboarding() {
+  return safeGetItem(ONBOARDING_SEEN_KEY) === "true";
+}
+
+function markOnboardingSeen() {
+  try {
+    localStorage.setItem(ONBOARDING_SEEN_KEY, "true");
+  } catch (error) {
+    console.error("No se pudo guardar que ya viste el tutorial.", error);
+  }
+}
+
+function updateOnboardingNextLabel() {
+  const isLastStep = onboardingStepIndex === ONBOARDING_TOTAL_STEPS;
+  btnOnboardingNext.textContent = t(isLastStep ? "onboarding_finish_btn" : "onboarding_next_btn");
+}
+
+function renderOnboardingStep() {
+  onboardingStepEls.forEach((el) => {
+    el.classList.toggle("is-active", Number(el.dataset.step) === onboardingStepIndex);
+  });
+  onboardingDotEls.forEach((el) => {
+    el.classList.toggle("is-active", Number(el.dataset.dot) === onboardingStepIndex);
+  });
+  btnOnboardingBack.hidden = onboardingStepIndex === 1;
+  btnOnboardingSkip.hidden = onboardingStepIndex === ONBOARDING_TOTAL_STEPS;
+  updateOnboardingNextLabel();
+}
+
+function openOnboarding() {
+  onboardingStepIndex = 1;
+  renderOnboardingStep();
+  onboardingBackdrop.hidden = false;
+}
+
+function closeOnboarding() {
+  onboardingBackdrop.hidden = true;
+  markOnboardingSeen();
+}
+
+btnOnboardingNext.addEventListener("click", () => {
+  if (onboardingStepIndex === ONBOARDING_TOTAL_STEPS) {
+    closeOnboarding();
+    return;
+  }
+  onboardingStepIndex += 1;
+  renderOnboardingStep();
+});
+
+btnOnboardingBack.addEventListener("click", () => {
+  if (onboardingStepIndex === 1) return;
+  onboardingStepIndex -= 1;
+  renderOnboardingStep();
+});
+
+btnOnboardingSkip.addEventListener("click", closeOnboarding);
+btnOnboardingClose.addEventListener("click", closeOnboarding);
+
+btnOnboardingReplay.addEventListener("click", () => {
+  closeSettings();
+  openOnboarding();
+});
+
+onboardingBackdrop.addEventListener("click", (event) => {
+  if (event.target === onboardingBackdrop) closeOnboarding();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !onboardingBackdrop.hidden) closeOnboarding();
 });
 
 // El link de donación queda listo para cuando exista BRAND.donationUrl:
@@ -3508,6 +3594,7 @@ function hideSplash() {
   if (reduceMotion) {
     splash.hidden = true;
     releaseInert();
+    if (!hasSeenOnboarding()) openOnboarding();
     return;
   }
 
@@ -3525,6 +3612,7 @@ function hideSplash() {
         if (event.target !== splash) return;
         splash.hidden = true;
         releaseInert();
+        if (!hasSeenOnboarding()) openOnboarding();
       },
       { once: true }
     );

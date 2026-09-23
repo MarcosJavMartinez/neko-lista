@@ -259,6 +259,9 @@
       <button type="button" id="btn-settings-close" class="settings-close-btn" data-i18n-aria-label="close_settings_aria" aria-label="Close settings">✕</button>
     </div>
 
+    <p class="settings-desc" data-i18n="settings_intro">Customize sound, theme, and colors, or back up your list. Everything stays saved on this device.</p>
+    <button type="button" id="btn-onboarding-replay" class="btn btn-secondary btn-small" data-i18n="onboarding_replay_btn">❓ How the app works</button>
+
     <div class="settings-row">
       <span class="settings-label" data-i18n="theme_label">Theme</span>
       <div class="theme-segmented" role="group" data-i18n-aria-label="theme_aria" aria-label="Choose theme">
@@ -446,6 +449,51 @@
           <p id="receive-code-status" class="settings-desc"></p>
         </div>
       </div>
+    </div>
+  </section>
+</div>
+
+<div id="onboarding-backdrop" class="modal-backdrop" hidden>
+  <section id="onboarding-panel" class="card settings-panel onboarding-panel" role="dialog" aria-modal="true" aria-labelledby="onboarding-title-text">
+    <div class="settings-header">
+      <h2 id="onboarding-title-text" class="settings-title" data-i18n="onboarding_title">How Neko Lista works</h2>
+      <button type="button" id="btn-onboarding-close" class="settings-close-btn" data-i18n-aria-label="close_onboarding_aria" aria-label="Skip the tutorial">✕</button>
+    </div>
+
+    <div class="onboarding-steps">
+      <div class="onboarding-step is-active" data-step="1">
+        <div class="onboarding-icon" aria-hidden="true">📝</div>
+        <h3 class="onboarding-step-title" data-i18n="onboarding_step1_title">Add products</h3>
+        <p class="onboarding-step-desc" data-i18n="onboarding_step1_desc">Type a name up top and tap + (or Enter) to add it to the list.</p>
+      </div>
+      <div class="onboarding-step" data-step="2">
+        <div class="onboarding-icon" aria-hidden="true">✅</div>
+        <h3 class="onboarding-step-title" data-i18n="onboarding_step2_title">Check off what you buy</h3>
+        <p class="onboarding-step-desc" data-i18n="onboarding_step2_desc">Tap a product's circle to check it off. You can add a sound or vibration for it in Settings.</p>
+      </div>
+      <div class="onboarding-step" data-step="3">
+        <div class="onboarding-icon" aria-hidden="true">🧮</div>
+        <h3 class="onboarding-step-title" data-i18n="onboarding_step3_title">Quantity, price, and total</h3>
+        <p class="onboarding-step-desc" data-i18n="onboarding_step3_desc">Tap a product to set its quantity and price — the total adds up on its own, line by line.</p>
+      </div>
+      <div class="onboarding-step" data-step="4">
+        <div class="onboarding-icon" aria-hidden="true">🎨</div>
+        <h3 class="onboarding-step-title" data-i18n="onboarding_step4_title">Make it yours</h3>
+        <p class="onboarding-step-desc" data-i18n="onboarding_step4_desc">Pick a theme, color, and language. Settings also lets you back up your list or install the app on your home screen.</p>
+      </div>
+    </div>
+
+    <div class="onboarding-dots" aria-hidden="true">
+      <span class="onboarding-dot is-active" data-dot="1"></span>
+      <span class="onboarding-dot" data-dot="2"></span>
+      <span class="onboarding-dot" data-dot="3"></span>
+      <span class="onboarding-dot" data-dot="4"></span>
+    </div>
+
+    <div class="onboarding-actions">
+      <button type="button" id="btn-onboarding-back" class="btn btn-secondary btn-small" data-i18n="onboarding_back_btn" hidden>Back</button>
+      <button type="button" id="btn-onboarding-skip" class="btn btn-secondary btn-small" data-i18n="onboarding_skip_btn">Skip</button>
+      <button type="button" id="btn-onboarding-next" class="btn btn-primary btn-small">Next</button>
     </div>
   </section>
 </div>
