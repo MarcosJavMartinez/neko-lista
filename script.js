@@ -1587,42 +1587,113 @@ function setSoundEnabled(enabled) {
   }
 }
 
-// Dos notas cortas, con un decaimiento rápido para que no se sienta invasivo
-// si se marcan o desmarcan varias seguidas. "beep" es una onda sine lisa;
-// "harp" son las mismas notas con un timbre de cuerda pulsada: más armónicos
-// (triangle) y un filtro que arranca brillante y se cierra rápido, que es
-// justo lo que hace que una cuerda real suene "acústica" y no un pitido.
+// "beep": dos notas cortas de onda sine, con un decaimiento rápido para que
+// no se sienta invasivo si se marcan o desmarcan varias seguidas.
+function playBeepNotes(notes) {
+  audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  const now = audioCtx.currentTime;
+  notes.forEach(({ freq, start, duration }) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, now + start);
+    gain.gain.linearRampToValueAtTime(0.18, now + start + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + start + duration);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(now + start);
+    osc.stop(now + start + duration + 0.02);
+  });
+}
+
+// Reverb "falsa" (sin archivo de impulso real): ruido blanco que decae
+// exponencialmente, que es la receta clásica para simular el eco de un
+// cuarto con Web Audio puro. Se arma una sola vez y se reusa.
+let harpReverbNode = null;
+function getHarpReverb() {
+  if (harpReverbNode) return harpReverbNode;
+  const duration = 2.2;
+  const decay = 3.2;
+  const rate = audioCtx.sampleRate;
+  const length = Math.round(rate * duration);
+  const impulse = audioCtx.createBuffer(2, length, rate);
+  for (let ch = 0; ch < impulse.numberOfChannels; ch++) {
+    const data = impulse.getChannelData(ch);
+    for (let i = 0; i < length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+    }
+  }
+  harpReverbNode = audioCtx.createConvolver();
+  harpReverbNode.buffer = impulse;
+  return harpReverbNode;
+}
+
+// "harp": tres osciladores por nota, apenas desafinados entre sí (como las
+// cuerdas reales, que nunca vibran en una frecuencia perfectamente pura),
+// con un vibrato leve para que se sienta que la cuerda sigue en movimiento
+// en vez de un tono fijo. El filtro se cierra de brillante a apagado a lo
+// largo de la nota entera (que ahora dura más de un segundo, para que suene
+// y se apague de a poco en vez de un golpe seco) y todo pasa también por un
+// envío a la reverb, para el eco que le faltaba.
+function playHarpNote(freq, startTime, duration, bus) {
+  const detunesCents = [-7, 0, 8];
+
+  const noteGain = audioCtx.createGain();
+  noteGain.gain.setValueAtTime(0, startTime);
+  noteGain.gain.linearRampToValueAtTime(0.15, startTime + 0.015);
+  noteGain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  noteGain.connect(bus);
+
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.Q.value = 0.6;
+  filter.frequency.setValueAtTime(freq * 7, startTime);
+  filter.frequency.exponentialRampToValueAtTime(freq * 1.1, startTime + duration);
+  filter.connect(noteGain);
+
+  const vibrato = audioCtx.createOscillator();
+  vibrato.frequency.value = 4.5;
+  const vibratoDepth = audioCtx.createGain();
+  vibratoDepth.gain.value = freq * 0.004;
+  vibrato.connect(vibratoDepth);
+  vibrato.start(startTime);
+  vibrato.stop(startTime + duration + 0.05);
+
+  detunesCents.forEach((cents) => {
+    const osc = audioCtx.createOscillator();
+    osc.type = "triangle";
+    osc.frequency.value = freq;
+    osc.detune.value = cents;
+    vibratoDepth.connect(osc.detune);
+    osc.connect(filter);
+    osc.start(startTime);
+    osc.stop(startTime + duration + 0.05);
+  });
+}
+
+function playHarpNotes(notes) {
+  audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  const now = audioCtx.currentTime;
+
+  const bus = audioCtx.createGain();
+  bus.gain.value = 1;
+  bus.connect(audioCtx.destination);
+
+  const wet = audioCtx.createGain();
+  wet.gain.value = 0.32;
+  bus.connect(wet);
+  wet.connect(getHarpReverb()).connect(audioCtx.destination);
+
+  notes.forEach(({ freq, start, duration }) => playHarpNote(freq, now + start, duration, bus));
+}
+
 function playTwoNoteSound(notes, preset) {
   if (!isSoundEnabled()) return;
   try {
-    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === "suspended") audioCtx.resume();
-
-    const isHarp = preset === "harp";
-    const now = audioCtx.currentTime;
-    notes.forEach(({ freq, start, duration }) => {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = isHarp ? "triangle" : "sine";
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0, now + start);
-      gain.gain.linearRampToValueAtTime(0.18, now + start + (isHarp ? 0.006 : 0.01));
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + start + duration);
-
-      let output = osc;
-      if (isHarp) {
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = "lowpass";
-        filter.Q.value = 0.7;
-        filter.frequency.setValueAtTime(freq * 9, now + start);
-        filter.frequency.exponentialRampToValueAtTime(freq * 1.2, now + start + duration);
-        osc.connect(filter);
-        output = filter;
-      }
-      output.connect(gain).connect(audioCtx.destination);
-      osc.start(now + start);
-      osc.stop(now + start + duration + 0.02);
-    });
+    if (preset === "harp") playHarpNotes(notes);
+    else playBeepNotes(notes);
   } catch (error) {
     console.error("No se pudo reproducir el sonido.", error);
   }
@@ -1630,6 +1701,9 @@ function playTwoNoteSound(notes, preset) {
 
 // Ascendente al comprar (estilo "listo ✓"), descendente al desmarcar (las
 // mismas dos notas, al revés) para que se sienta como la acción opuesta.
+// El arpa usa notas bastante más largas que el beep: una cuerda pulsada
+// tarda en apagarse, y con una superposición chica entre las dos se
+// escuchan sonar juntas un instante, como un arpegio real.
 const DEFAULT_CHECK_NOTES = [
   { freq: 880, start: 0, duration: 0.09 },
   { freq: 1318.5, start: 0.07, duration: 0.14 },
@@ -1638,6 +1712,22 @@ const DEFAULT_UNCHECK_NOTES = [
   { freq: 1318.5, start: 0, duration: 0.09 },
   { freq: 880, start: 0.07, duration: 0.14 },
 ];
+const HARP_CHECK_NOTES = [
+  { freq: 880, start: 0, duration: 1.1 },
+  { freq: 1318.5, start: 0.1, duration: 1.35 },
+];
+const HARP_UNCHECK_NOTES = [
+  { freq: 1318.5, start: 0, duration: 1.1 },
+  { freq: 880, start: 0.1, duration: 1.35 },
+];
+
+function checkNotesFor(preset) {
+  return preset === "harp" ? HARP_CHECK_NOTES : DEFAULT_CHECK_NOTES;
+}
+
+function uncheckNotesFor(preset) {
+  return preset === "harp" ? HARP_UNCHECK_NOTES : DEFAULT_UNCHECK_NOTES;
+}
 
 // Decodifica el data URL guardado (lo mismo que ya se hace con la imagen de
 // fondo personalizada, pero para audio) y lo reproduce entero, sin dejarlo
@@ -1672,28 +1762,30 @@ function playStoredSound(dataUrl) {
 
 function playPurchaseSound() {
   if (!isSoundEnabled()) return;
+  const preset = getSoundPreset();
   const custom = safeGetItem(SOUND_CHECK_CUSTOM_KEY);
   if (custom) {
     playStoredSound(custom).catch((error) => {
       console.error("No se pudo reproducir el sonido de tildar, uso el de por defecto.", error);
-      playTwoNoteSound(DEFAULT_CHECK_NOTES, getSoundPreset());
+      playTwoNoteSound(checkNotesFor(preset), preset);
     });
     return;
   }
-  playTwoNoteSound(DEFAULT_CHECK_NOTES, getSoundPreset());
+  playTwoNoteSound(checkNotesFor(preset), preset);
 }
 
 function playUnpurchaseSound() {
   if (!isSoundEnabled()) return;
+  const preset = getSoundPreset();
   const custom = safeGetItem(SOUND_UNCHECK_CUSTOM_KEY);
   if (custom) {
     playStoredSound(custom).catch((error) => {
       console.error("No se pudo reproducir el sonido de destildar, uso el de por defecto.", error);
-      playTwoNoteSound(DEFAULT_UNCHECK_NOTES, getSoundPreset());
+      playTwoNoteSound(uncheckNotesFor(preset), preset);
     });
     return;
   }
-  playTwoNoteSound(DEFAULT_UNCHECK_NOTES, getSoundPreset());
+  playTwoNoteSound(uncheckNotesFor(preset), preset);
 }
 
 btnSoundToggle.addEventListener("click", () => {
