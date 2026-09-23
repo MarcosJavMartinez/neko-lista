@@ -1609,10 +1609,10 @@ function playBeepNotes(notes) {
 
 // Reverb "falsa" (sin archivo de impulso real): ruido blanco que decae
 // exponencialmente, que es la receta clásica para simular el eco de un
-// cuarto con Web Audio puro. Se arma una sola vez y se reusa.
-let pianoReverbNode = null;
-function getPianoReverb() {
-  if (pianoReverbNode) return pianoReverbNode;
+// cuarto con Web Audio puro. Se arma una sola vez y la comparten arpa y piano.
+let synthReverbNode = null;
+function getSynthReverb() {
+  if (synthReverbNode) return synthReverbNode;
   const duration = 2.2;
   const decay = 3.2;
   const rate = audioCtx.sampleRate;
@@ -1624,9 +1624,67 @@ function getPianoReverb() {
       data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
     }
   }
-  pianoReverbNode = audioCtx.createConvolver();
-  pianoReverbNode.buffer = impulse;
-  return pianoReverbNode;
+  synthReverbNode = audioCtx.createConvolver();
+  synthReverbNode.buffer = impulse;
+  return synthReverbNode;
+}
+
+// "harp": tres osciladores por nota, apenas desafinados entre sí (como las
+// cuerdas reales, que nunca vibran en una frecuencia perfectamente pura),
+// con un vibrato leve para que se sienta que la cuerda sigue en movimiento
+// en vez de un tono fijo. El filtro se cierra de brillante a apagado a lo
+// largo de la nota entera y todo pasa también por la reverb, para el eco.
+function playHarpNote(freq, startTime, duration, bus) {
+  const detunesCents = [-7, 0, 8];
+
+  const noteGain = audioCtx.createGain();
+  noteGain.gain.setValueAtTime(0, startTime);
+  noteGain.gain.linearRampToValueAtTime(0.15, startTime + 0.015);
+  noteGain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  noteGain.connect(bus);
+
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.Q.value = 0.6;
+  filter.frequency.setValueAtTime(freq * 7, startTime);
+  filter.frequency.exponentialRampToValueAtTime(freq * 1.1, startTime + duration);
+  filter.connect(noteGain);
+
+  const vibrato = audioCtx.createOscillator();
+  vibrato.frequency.value = 4.5;
+  const vibratoDepth = audioCtx.createGain();
+  vibratoDepth.gain.value = freq * 0.004;
+  vibrato.connect(vibratoDepth);
+  vibrato.start(startTime);
+  vibrato.stop(startTime + duration + 0.05);
+
+  detunesCents.forEach((cents) => {
+    const osc = audioCtx.createOscillator();
+    osc.type = "triangle";
+    osc.frequency.value = freq;
+    osc.detune.value = cents;
+    vibratoDepth.connect(osc.detune);
+    osc.connect(filter);
+    osc.start(startTime);
+    osc.stop(startTime + duration + 0.05);
+  });
+}
+
+function playHarpNotes(notes) {
+  audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  const now = audioCtx.currentTime;
+
+  const bus = audioCtx.createGain();
+  bus.gain.value = 1;
+  bus.connect(audioCtx.destination);
+
+  const wet = audioCtx.createGain();
+  wet.gain.value = 0.32;
+  bus.connect(wet);
+  wet.connect(getSynthReverb()).connect(audioCtx.destination);
+
+  notes.forEach(({ freq, start, duration }) => playHarpNote(freq, now + start, duration, bus));
 }
 
 // Ruido cortito para el "golpe" del martillo contra la cuerda: sin él,
@@ -1698,7 +1756,7 @@ function playPianoNotes(notes) {
   const wet = audioCtx.createGain();
   wet.gain.value = 0.16;
   bus.connect(wet);
-  wet.connect(getPianoReverb()).connect(audioCtx.destination);
+  wet.connect(getSynthReverb()).connect(audioCtx.destination);
 
   notes.forEach(({ freq, start, duration }) => playPianoNote(freq, now + start, duration, bus));
 }
@@ -1706,7 +1764,8 @@ function playPianoNotes(notes) {
 function playTwoNoteSound(notes, preset) {
   if (!isSoundEnabled()) return;
   try {
-    if (preset === "piano") playPianoNotes(notes);
+    if (preset === "harp") playHarpNotes(notes);
+    else if (preset === "piano") playPianoNotes(notes);
     else playBeepNotes(notes);
   } catch (error) {
     console.error("No se pudo reproducir el sonido.", error);
@@ -1715,9 +1774,9 @@ function playTwoNoteSound(notes, preset) {
 
 // Ascendente al comprar (estilo "listo ✓"), descendente al desmarcar (las
 // mismas dos notas, al revés) para que se sienta como la acción opuesta.
-// El piano usa notas bastante más largas que el beep: una cuerda percutida
-// tarda en apagarse, y con una superposición chica entre las dos se
-// escuchan sonar juntas un instante, como un arpegio real.
+// Arpa y piano usan notas bastante más largas que el beep: una cuerda
+// pulsada o percutida tarda en apagarse, y con una superposición chica
+// entre las dos se escuchan sonar juntas un instante, como un arpegio real.
 const DEFAULT_CHECK_NOTES = [
   { freq: 880, start: 0, duration: 0.09 },
   { freq: 1318.5, start: 0.07, duration: 0.14 },
@@ -1725,6 +1784,14 @@ const DEFAULT_CHECK_NOTES = [
 const DEFAULT_UNCHECK_NOTES = [
   { freq: 1318.5, start: 0, duration: 0.09 },
   { freq: 880, start: 0.07, duration: 0.14 },
+];
+const HARP_CHECK_NOTES = [
+  { freq: 880, start: 0, duration: 1.1 },
+  { freq: 1318.5, start: 0.1, duration: 1.35 },
+];
+const HARP_UNCHECK_NOTES = [
+  { freq: 1318.5, start: 0, duration: 1.1 },
+  { freq: 880, start: 0.1, duration: 1.35 },
 ];
 const PIANO_CHECK_NOTES = [
   { freq: 880, start: 0, duration: 1.1 },
@@ -1736,11 +1803,15 @@ const PIANO_UNCHECK_NOTES = [
 ];
 
 function checkNotesFor(preset) {
-  return preset === "piano" ? PIANO_CHECK_NOTES : DEFAULT_CHECK_NOTES;
+  if (preset === "harp") return HARP_CHECK_NOTES;
+  if (preset === "piano") return PIANO_CHECK_NOTES;
+  return DEFAULT_CHECK_NOTES;
 }
 
 function uncheckNotesFor(preset) {
-  return preset === "piano" ? PIANO_UNCHECK_NOTES : DEFAULT_UNCHECK_NOTES;
+  if (preset === "harp") return HARP_UNCHECK_NOTES;
+  if (preset === "piano") return PIANO_UNCHECK_NOTES;
+  return DEFAULT_UNCHECK_NOTES;
 }
 
 // Decodifica el data URL guardado (lo mismo que ya se hace con la imagen de
@@ -1811,7 +1882,8 @@ setSoundEnabled(isSoundEnabled());
 // Timbre de las dos notas de por defecto: no afecta a un evento (tildar o
 // destildar) que ya tenga un sonido propio grabado o cargado.
 function getSoundPreset() {
-  return safeGetItem(SOUND_PRESET_KEY) === "piano" ? "piano" : "beep";
+  const saved = safeGetItem(SOUND_PRESET_KEY);
+  return saved === "harp" || saved === "piano" ? saved : "beep";
 }
 
 function refreshSoundPresetButtons() {
@@ -1831,7 +1903,13 @@ function setSoundPreset(preset) {
 }
 
 soundPresetButtons.forEach((btn) => {
-  btn.addEventListener("click", () => setSoundPreset(btn.dataset.soundPreset));
+  btn.addEventListener("click", () => {
+    const preset = btn.dataset.soundPreset;
+    setSoundPreset(preset);
+    // Suena apenas se elige, así se puede distinguir un timbre de otro sin
+    // tener que ir hasta el botón "Escuchar" de cada evento.
+    playTwoNoteSound(checkNotesFor(preset), preset);
+  });
 });
 
 refreshSoundPresetButtons();
