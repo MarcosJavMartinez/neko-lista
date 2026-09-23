@@ -637,7 +637,8 @@ h1, h2,
   padding: 4px;
 }
 
-.theme-option {
+.theme-option,
+.sound-preset-option {
   flex: 1;
   padding: 9px 8px;
   border: none;
@@ -659,7 +660,8 @@ h1, h2,
   flex-shrink: 0;
 }
 
-.theme-option.active {
+.theme-option.active,
+.sound-preset-option.active {
   background: var(--color-card);
   color: var(--color-text);
   box-shadow: var(--shadow-xs);

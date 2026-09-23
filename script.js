@@ -29,6 +29,7 @@ const CUSTOM_COLOR_KEY = "listaCompras.customColor";
 const SOUND_ENABLED_KEY = "listaCompras.soundEnabled";
 const SOUND_CHECK_CUSTOM_KEY = "listaCompras.soundCheckCustom";
 const SOUND_UNCHECK_CUSTOM_KEY = "listaCompras.soundUncheckCustom";
+const SOUND_PRESET_KEY = "listaCompras.soundPreset";
 
 const SVG_ICON_SUN =
   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
@@ -459,6 +460,7 @@ const btnShareApp = document.getElementById("btn-share-app");
 const toastEl = document.getElementById("toast");
 const themeOptionButtons = document.querySelectorAll(".theme-option");
 const btnSoundToggle = document.getElementById("btn-sound-toggle");
+const soundPresetButtons = document.querySelectorAll(".sound-preset-option");
 const btnExportData = document.getElementById("btn-export-data");
 const inputImportData = document.getElementById("input-import-data");
 const ioTabButtons = document.querySelectorAll(".io-tab");
@@ -1586,23 +1588,38 @@ function setSoundEnabled(enabled) {
 }
 
 // Dos notas cortas, con un decaimiento rápido para que no se sienta invasivo
-// si se marcan o desmarcan varias seguidas.
-function playTwoNoteSound(notes) {
+// si se marcan o desmarcan varias seguidas. "beep" es una onda sine lisa;
+// "harp" son las mismas notas con un timbre de cuerda pulsada: más armónicos
+// (triangle) y un filtro que arranca brillante y se cierra rápido, que es
+// justo lo que hace que una cuerda real suene "acústica" y no un pitido.
+function playTwoNoteSound(notes, preset) {
   if (!isSoundEnabled()) return;
   try {
     audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === "suspended") audioCtx.resume();
 
+    const isHarp = preset === "harp";
     const now = audioCtx.currentTime;
     notes.forEach(({ freq, start, duration }) => {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      osc.type = "sine";
+      osc.type = isHarp ? "triangle" : "sine";
       osc.frequency.value = freq;
       gain.gain.setValueAtTime(0, now + start);
-      gain.gain.linearRampToValueAtTime(0.18, now + start + 0.01);
+      gain.gain.linearRampToValueAtTime(0.18, now + start + (isHarp ? 0.006 : 0.01));
       gain.gain.exponentialRampToValueAtTime(0.0001, now + start + duration);
-      osc.connect(gain).connect(audioCtx.destination);
+
+      let output = osc;
+      if (isHarp) {
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.Q.value = 0.7;
+        filter.frequency.setValueAtTime(freq * 9, now + start);
+        filter.frequency.exponentialRampToValueAtTime(freq * 1.2, now + start + duration);
+        osc.connect(filter);
+        output = filter;
+      }
+      output.connect(gain).connect(audioCtx.destination);
       osc.start(now + start);
       osc.stop(now + start + duration + 0.02);
     });
@@ -1659,11 +1676,11 @@ function playPurchaseSound() {
   if (custom) {
     playStoredSound(custom).catch((error) => {
       console.error("No se pudo reproducir el sonido de tildar, uso el de por defecto.", error);
-      playTwoNoteSound(DEFAULT_CHECK_NOTES);
+      playTwoNoteSound(DEFAULT_CHECK_NOTES, getSoundPreset());
     });
     return;
   }
-  playTwoNoteSound(DEFAULT_CHECK_NOTES);
+  playTwoNoteSound(DEFAULT_CHECK_NOTES, getSoundPreset());
 }
 
 function playUnpurchaseSound() {
@@ -1672,11 +1689,11 @@ function playUnpurchaseSound() {
   if (custom) {
     playStoredSound(custom).catch((error) => {
       console.error("No se pudo reproducir el sonido de destildar, uso el de por defecto.", error);
-      playTwoNoteSound(DEFAULT_UNCHECK_NOTES);
+      playTwoNoteSound(DEFAULT_UNCHECK_NOTES, getSoundPreset());
     });
     return;
   }
-  playTwoNoteSound(DEFAULT_UNCHECK_NOTES);
+  playTwoNoteSound(DEFAULT_UNCHECK_NOTES, getSoundPreset());
 }
 
 btnSoundToggle.addEventListener("click", () => {
@@ -1684,6 +1701,34 @@ btnSoundToggle.addEventListener("click", () => {
 });
 
 setSoundEnabled(isSoundEnabled());
+
+// Timbre de las dos notas de por defecto: no afecta a un evento (tildar o
+// destildar) que ya tenga un sonido propio grabado o cargado.
+function getSoundPreset() {
+  return safeGetItem(SOUND_PRESET_KEY) === "harp" ? "harp" : "beep";
+}
+
+function refreshSoundPresetButtons() {
+  const current = getSoundPreset();
+  soundPresetButtons.forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.soundPreset === current);
+  });
+}
+
+function setSoundPreset(preset) {
+  try {
+    localStorage.setItem(SOUND_PRESET_KEY, preset);
+  } catch (error) {
+    console.error("No se pudo guardar el timbre del sonido.", error);
+  }
+  refreshSoundPresetButtons();
+}
+
+soundPresetButtons.forEach((btn) => {
+  btn.addEventListener("click", () => setSoundPreset(btn.dataset.soundPreset));
+});
+
+refreshSoundPresetButtons();
 
 /* ==========================================================================
    Sonido personalizado (subir un archivo propio o volver al de por defecto)
