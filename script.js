@@ -1676,7 +1676,10 @@ function playHarpNotes(notes) {
   const now = audioCtx.currentTime;
 
   const bus = audioCtx.createGain();
-  bus.gain.value = 1;
+  // Con 3 osciladores por nota sumados antes de esta ganancia, sin bajarla
+  // el arpa sonaba bastante más fuerte que el beep (medido: -29 dB contra
+  // -40 dB de RMS). 0.28 lo deja parejo con los otros dos sonidos.
+  bus.gain.value = 0.28;
   bus.connect(audioCtx.destination);
 
   const wet = audioCtx.createGain();
@@ -1750,7 +1753,11 @@ function playPianoNotes(notes) {
   const now = audioCtx.currentTime;
 
   const bus = audioCtx.createGain();
-  bus.gain.value = 1;
+  // Con 4 armónicos + el golpe del martillo sumados antes de esta ganancia,
+  // sin bajarla el piano llegaba casi al techo digital (medido: pico 0.9 y
+  // -22 dB de RMS contra -40 dB del beep). 0.12 lo deja parejo con los otros
+  // dos sonidos.
+  bus.gain.value = 0.12;
   bus.connect(audioCtx.destination);
 
   const wet = audioCtx.createGain();
