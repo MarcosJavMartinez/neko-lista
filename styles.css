@@ -2252,6 +2252,32 @@ a:focus-visible {
   color: var(--color-text-muted);
 }
 
+.app-footer-support-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 12px;
+  border: none;
+  border-radius: 999px;
+  padding: 9px 20px;
+  background: var(--color-primary);
+  color: white;
+  font-family: "Nunito", "Inter", sans-serif;
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+.app-footer-support-btn:hover {
+  filter: brightness(1.05);
+}
+
+.app-footer-support-btn:active {
+  transform: scale(0.96);
+}
+
 .app-footer-links {
   margin: 0;
   display: flex;

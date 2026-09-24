@@ -76,7 +76,7 @@ const TRANSLATIONS = {
     confirm_clear_all: "¿Vaciar toda la lista de compras? Esta acción no se puede deshacer.",
 
     footer_made_with: "Hecho con ❤️ por Neko Tools",
-    footer_support: "Apoyar el proyecto",
+    footer_support: "❤️ Apoyar el proyecto",
     footer_more_tools: "Más herramientas",
     footer_privacy: "Privacidad",
     splash_by: "por",
@@ -325,7 +325,7 @@ const TRANSLATIONS = {
     confirm_clear_all: "Clear the entire shopping list? This action cannot be undone.",
 
     footer_made_with: "Made with ❤️ by Neko Tools",
-    footer_support: "Support the project",
+    footer_support: "❤️ Support the project",
     footer_more_tools: "More tools",
     footer_privacy: "Privacy",
     splash_by: "by",
@@ -574,7 +574,7 @@ const TRANSLATIONS = {
     confirm_clear_all: "Esvaziar toda a lista de compras? Essa ação não pode ser desfeita.",
 
     footer_made_with: "Feito com ❤️ por Neko Tools",
-    footer_support: "Apoiar o projeto",
+    footer_support: "❤️ Apoiar o projeto",
     footer_more_tools: "Mais ferramentas",
     footer_privacy: "Privacidade",
     splash_by: "por",
@@ -823,7 +823,7 @@ const TRANSLATIONS = {
     confirm_clear_all: "Tüm alışveriş listesi boşaltılsın mı? Bu işlem geri alınamaz.",
 
     footer_made_with: "Neko Tools tarafından ❤️ ile yapıldı",
-    footer_support: "Projeyi destekle",
+    footer_support: "❤️ Projeyi destekle",
     footer_more_tools: "Daha fazla araç",
     footer_privacy: "Gizlilik",
     splash_by: "tarafından",
@@ -1072,7 +1072,7 @@ const TRANSLATIONS = {
     confirm_clear_all: "Очистить весь список покупок? Это действие нельзя отменить.",
 
     footer_made_with: "Сделано с ❤️ командой Neko Tools",
-    footer_support: "Поддержать проект",
+    footer_support: "❤️ Поддержать проект",
     footer_more_tools: "Другие инструменты",
     footer_privacy: "Конфиденциальность",
     splash_by: "от",
@@ -1321,7 +1321,7 @@ const TRANSLATIONS = {
     confirm_clear_all: "買い物リストをすべて空にしますか？この操作は取り消せません。",
 
     footer_made_with: "Neko Tools が ❤️ を込めて制作",
-    footer_support: "プロジェクトを支援する",
+    footer_support: "❤️ プロジェクトを支援する",
     footer_more_tools: "その他のツール",
     footer_privacy: "プライバシー",
     splash_by: "より",
