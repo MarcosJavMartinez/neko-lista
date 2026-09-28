@@ -140,7 +140,7 @@ const TRANSLATIONS = {
     sound_desc: "Suena un sonido corto cuando marcás un producto como comprado.",
     sound_preset_label: "Sonido base",
     sound_preset_aria: "Elegir sonido base",
-    sound_preset_beep: "🔔 Beep",
+    sound_preset_beep: "🔔 Pitido",
     sound_preset_flute: "🪈 Flauta",
     sound_preset_harp: "🎵 Arpa",
     sound_preset_piano: "🎹 Piano",
@@ -263,6 +263,10 @@ const TRANSLATIONS = {
     palette_grafito: "Grafito",
 
     lang_modal_title: "Elegir idioma",
+
+    brand_by: "por Neko Tools",
+    app_title: "Neko Lista — Lista de compras y presupuesto",
+    date_locale: "es-AR",
   },
 
   en: {
@@ -512,6 +516,10 @@ const TRANSLATIONS = {
     palette_grafito: "Graphite",
 
     lang_modal_title: "Choose language",
+
+    brand_by: "by Neko Tools",
+    app_title: "Neko Lista — Shopping list & budget",
+    date_locale: "en-US",
   },
 
   pt: {
@@ -638,7 +646,7 @@ const TRANSLATIONS = {
     sound_desc: "Um som curto toca quando você marca um produto como comprado.",
     sound_preset_label: "Som base",
     sound_preset_aria: "Escolher som base",
-    sound_preset_beep: "🔔 Beep",
+    sound_preset_beep: "🔔 Bipe",
     sound_preset_flute: "🪈 Flauta",
     sound_preset_harp: "🎵 Harpa",
     sound_preset_piano: "🎹 Piano",
@@ -761,6 +769,10 @@ const TRANSLATIONS = {
     palette_grafito: "Grafite",
 
     lang_modal_title: "Escolher idioma",
+
+    brand_by: "por Neko Tools",
+    app_title: "Neko Lista — Lista de compras e orçamento",
+    date_locale: "pt-BR",
   },
 
   tr: {
@@ -1010,6 +1022,10 @@ const TRANSLATIONS = {
     palette_grafito: "Grafit",
 
     lang_modal_title: "Dil seç",
+
+    brand_by: "Neko Tools tarafından",
+    app_title: "Neko Lista — Alışveriş listesi ve bütçe",
+    date_locale: "tr-TR",
   },
 
   ru: {
@@ -1259,6 +1275,10 @@ const TRANSLATIONS = {
     palette_grafito: "Графит",
 
     lang_modal_title: "Выбрать язык",
+
+    brand_by: "от Neko Tools",
+    app_title: "Neko Lista — Список покупок и бюджет",
+    date_locale: "ru-RU",
   },
 
   ja: {
@@ -1508,6 +1528,10 @@ const TRANSLATIONS = {
     palette_grafito: "グラファイト",
 
     lang_modal_title: "言語を選択",
+
+    brand_by: "Neko Tools より",
+    app_title: "Neko Lista — 買い物リストと予算",
+    date_locale: "ja-JP",
   },
 };
 
@@ -1556,24 +1580,33 @@ function setLang(lang) {
 }
 
 // Recorre el DOM y aplica las traducciones a todo lo marcado con
-// data-i18n / data-i18n-placeholder / data-i18n-aria-label.
+// data-i18n / data-i18n-placeholder / data-i18n-aria-label / data-i18n-title.
 function applyStaticTranslations() {
   document.documentElement.lang = currentLang;
+  document.title = t("app_title");
 
-  document.querySelectorAll("[data-i18n]").forEach((el) => {
-    el.textContent = t(el.dataset.i18n);
-  });
-  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
-    el.placeholder = t(el.dataset.i18nPlaceholder);
-  });
-  document.querySelectorAll("[data-i18n-aria-label]").forEach((el) => {
-    el.setAttribute("aria-label", t(el.dataset.i18nAriaLabel));
-  });
-  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
-    el.title = t(el.dataset.i18nTitle);
-  });
+  // Las <template> (p. ej. la tarjeta de producto) también se traducen: su
+  // contenido no forma parte del DOM, así que sin esto cada clon nacería con
+  // los textos de relleno del HTML en vez del idioma elegido.
+  translateTree(document);
+  document.querySelectorAll("template").forEach((tpl) => translateTree(tpl.content));
 
   updateSplashByOrder();
+}
+
+function translateTree(root) {
+  root.querySelectorAll("[data-i18n]").forEach((el) => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  root.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+  root.querySelectorAll("[data-i18n-aria-label]").forEach((el) => {
+    el.setAttribute("aria-label", t(el.dataset.i18nAriaLabel));
+  });
+  root.querySelectorAll("[data-i18n-title]").forEach((el) => {
+    el.title = t(el.dataset.i18nTitle);
+  });
 }
 
 // En turco y japonés, la palabra equivalente a "by" es una posposición: va

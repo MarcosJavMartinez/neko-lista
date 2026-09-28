@@ -1255,7 +1255,7 @@ function exportListAsPdf() {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(120);
-  doc.text(t("doc_generated_on", { date: new Date().toLocaleDateString("es-AR") }), marginX, y);
+  doc.text(t("doc_generated_on", { date: new Date().toLocaleDateString(t("date_locale")) }), marginX, y);
   y += 28;
   doc.setTextColor(20);
 
@@ -1442,7 +1442,7 @@ async function exportListAsImage() {
   ctx.fillText("🐱 Neko Lista", cardX + paddingX, cardY + 46);
   ctx.font = "500 14px Inter, sans-serif";
   ctx.globalAlpha = 0.9;
-  const dateLabel = new Date().toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" });
+  const dateLabel = new Date().toLocaleDateString(t("date_locale"), { day: "numeric", month: "long", year: "numeric" });
   ctx.fillText(dateLabel, cardX + paddingX, cardY + 74);
   ctx.globalAlpha = 1;
 
