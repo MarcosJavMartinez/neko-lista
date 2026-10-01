@@ -1,4 +1,4 @@
-const CACHE_NAME = "neko-lista-v5";
+const CACHE_NAME = "neko-lista-v6";
 const APP_SHELL = [
   "./",
   "index.html",
@@ -8,7 +8,7 @@ const APP_SHELL = [
   "i18n.js",
   "manifest.json",
   "img/logo-header.png",
-  "img/neko-tools-mark.png",
+  "img/neko-tools-mark-v2.png",
   "img/favicon-32.png",
   "img/favicon-16.png",
   "img/apple-touch-icon.png",
