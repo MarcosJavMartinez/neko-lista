@@ -1,0 +1,16 @@
+#!/bin/sh
+# Candado antes de publicar: si la prueba de listas falla, el push no sale
+# (y Vercel no publica nada). Ver tests/listas-seguras.test.js.
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+if [ ! -d tests/node_modules/playwright ]; then
+  echo "Falta instalar la prueba de listas: cd tests && npm install" >&2
+  exit 1
+fi
+
+echo "Verificando que las listas de los usuarios queden intactas..."
+node tests/listas-seguras.test.js || {
+  echo "" >&2
+  echo "PUSH BLOQUEADO: este cambio afecta las listas de los usuarios." >&2
+  exit 1
+}

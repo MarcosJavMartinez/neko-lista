@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "description": "Pruebas de Neko Lista (no se publican).",
+  "scripts": {
+    "test": "node listas-seguras.test.js"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
