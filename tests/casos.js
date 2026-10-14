@@ -87,3 +87,13 @@ module.exports = [
   { nombre: "catálogo viejo (versión 2)", storage: lista(listaVieja, { "listaCompras.catalogVersion": "2" }) },
   { nombre: "primera vez que se abre la app", storage: {} },
 ];
+
+// Alguien que ya tenía el respaldo de la versión anterior: al abrir esta
+// versión, el respaldo se renueva con su lista actual.
+module.exports.push({
+  nombre: "respaldo de la versión anterior",
+  storage: lista(listaActual.slice(0, 3), {
+    "listaCompras.respaldo": JSON.stringify({ version: "neko-lista-v5", savedAt: "2026-10-01T10:00:00.000Z", list: "[]" }),
+  }),
+  identica: true,
+});

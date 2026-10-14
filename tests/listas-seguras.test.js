@@ -29,6 +29,8 @@ const RAIZ = path.resolve(__dirname, "..");
 const ESPERADO = path.join(__dirname, "esperado.json");
 const ACTUALIZAR = process.argv.includes("--actualizar");
 const CLAVE_LISTA = "listaCompras.productos";
+const CLAVE_RESPALDO = "listaCompras.respaldo";
+const CLAVE_ILEGIBLE = "listaCompras.productosIlegibles";
 const AJUSTES_QUE_NO_SE_TOCAN = [
   "listaCompras.lang",
   "listaCompras.theme",
@@ -82,6 +84,15 @@ function normalizar(storage, idsDeEntrada) {
         valor = { noEsJson: valor };
       }
     }
+    if (clave === CLAVE_RESPALDO) {
+      try {
+        valor = { ...JSON.parse(valor), savedAt: "<fecha>", version: "<version>" };
+        // La lista del respaldo es texto: se normaliza igual que la lista.
+        valor.list = normalizar({ [CLAVE_LISTA]: valor.list }, idsDeEntrada)[CLAVE_LISTA];
+      } catch {
+        valor = { noEsJson: valor };
+      }
+    }
     out[clave] = valor;
   }
   return out;
@@ -120,8 +131,9 @@ async function correrCaso(browser, base, caso) {
   };
 
   await abrir();
-  const constantes = await page.evaluate(() => ({ STORAGE_KEY, CATALOG_VERSION }));
+  const constantes = await page.evaluate(() => ({ STORAGE_KEY, CATALOG_VERSION, APP_VERSION }));
   const alAbrir = await leerStorage(page);
+  const respaldoCrudo = alAbrir[CLAVE_RESPALDO];
   // Cualquier acción de la persona (tildar, agregar, editar) guarda la lista
   // entera tal como la tiene la app en memoria: forzamos ese guardado.
   await page.evaluate(() => saveToLocalStorage());
@@ -138,8 +150,11 @@ async function correrCaso(browser, base, caso) {
     /* lista de entrada dañada a propósito */
   }
 
+  // `soloReglas` cambia en cada publicación (versión, fecha): lo usan las
+  // reglas fijas pero no se compara contra la referencia.
   return {
-    constantes,
+    soloReglas: { respaldoCrudo, appVersion: constantes.APP_VERSION },
+    constantes: { STORAGE_KEY: constantes.STORAGE_KEY, CATALOG_VERSION: constantes.CATALOG_VERSION },
     errores,
     alAbrir: normalizar(alAbrir, idsDeEntrada),
     despuesDeGuardar: normalizar(despuesDeGuardar, idsDeEntrada),
@@ -163,6 +178,31 @@ function reglasFijas(caso, r) {
   chequear("CATALOG_VERSION no puede cambiar: subirlo mete productos de ejemplo en la lista de todos", () =>
     assert.strictEqual(r.constantes.CATALOG_VERSION, 3)
   );
+  const swVersion = fs.readFileSync(path.join(RAIZ, "sw.js"), "utf8").match(/CACHE_NAME = "([^"]+)"/)[1];
+  chequear("APP_VERSION (script.js) tiene que ser igual a CACHE_NAME (sw.js): subí las dos juntas", () =>
+    assert.strictEqual(r.soloReglas.appVersion, swVersion)
+  );
+
+  const listaOriginal = caso.storage[CLAVE_LISTA];
+  if (listaOriginal !== undefined) {
+    chequear("Al abrir una versión nueva se guarda un respaldo con la lista original, sin tocar", () => {
+      const respaldo = JSON.parse(r.soloReglas.respaldoCrudo);
+      assert.strictEqual(respaldo.version, r.soloReglas.appVersion);
+      assert.strictEqual(respaldo.list, listaOriginal);
+    });
+    let legible = true;
+    try {
+      JSON.parse(listaOriginal);
+    } catch {
+      legible = false;
+    }
+    if (!legible) {
+      chequear("Una lista que no se puede leer se guarda aparte, tal cual estaba", () =>
+        assert.strictEqual(r.despuesDeGuardar[CLAVE_ILEGIBLE], listaOriginal)
+      );
+    }
+  }
+
   chequear("La app no puede tirar errores al abrir", () => assert.deepStrictEqual(r.errores, []));
 
   for (const clave of AJUSTES_QUE_NO_SE_TOCAN) {
@@ -207,7 +247,10 @@ function reglasFijas(caso, r) {
 
     if (ACTUALIZAR) {
       if (fallas) throw new Error("No se regraba la referencia: hay reglas fijas rotas.");
-      fs.writeFileSync(ESPERADO, JSON.stringify(resultados, null, 1) + "\n");
+      const comparables = Object.fromEntries(
+        Object.entries(resultados).map(([nombre, { soloReglas, ...resto }]) => [nombre, resto])
+      );
+      fs.writeFileSync(ESPERADO, JSON.stringify(comparables, null, 1) + "\n");
       console.log(`Referencia regrabada con ${CASOS.length} casos.`);
       return;
     }
@@ -220,7 +263,8 @@ function reglasFijas(caso, r) {
         continue;
       }
       try {
-        assert.deepStrictEqual(resultados[caso.nombre], esperado[caso.nombre]);
+        const { soloReglas, ...comparable } = resultados[caso.nombre];
+        assert.deepStrictEqual(comparable, esperado[caso.nombre]);
         console.log(`✓ ${caso.nombre}`);
       } catch (e) {
         console.error(`✗ [${caso.nombre}] la app ya no trata esta lista igual que antes:\n${e.message.slice(0, 3000)}\n`);

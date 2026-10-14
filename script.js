@@ -422,6 +422,12 @@ const DEFAULT_PRODUCTS = DEFAULT_PRODUCTS_RAW.map((item) => ({
 const CATALOG_VERSION = 3;
 const CATALOG_VERSION_KEY = "listaCompras.catalogVersion";
 
+// Tiene que coincidir con CACHE_NAME de sw.js (la prueba de listas lo
+// verifica): subilo junto con esa versión en cada publicación.
+const APP_VERSION = "neko-lista-v7";
+const LIST_BACKUP_KEY = "listaCompras.respaldo";
+const UNREADABLE_LIST_KEY = "listaCompras.productosIlegibles";
+
 let products = [];
 let searchQuery = "";
 let filterCategory = "";
@@ -597,11 +603,14 @@ function sanitizeProduct(raw, usedIds) {
   return product;
 }
 
-function sanitizeProductList(list) {
+// El tope de productos es para lo que entra de afuera (archivos, códigos de
+// transferencia). La lista propia guardada se lee entera: recortarla al
+// abrir la app borraría productos de la persona en el siguiente guardado.
+function sanitizeProductList(list, maxProducts = MAX_IMPORTED_PRODUCTS) {
   if (!Array.isArray(list)) return [];
   const usedIds = new Set();
   const clean = [];
-  for (const raw of list.slice(0, MAX_IMPORTED_PRODUCTS)) {
+  for (const raw of list.slice(0, maxProducts)) {
     const product = sanitizeProduct(raw, usedIds);
     if (product) clean.push(product);
   }
@@ -965,11 +974,33 @@ function safeGetItem(key) {
   }
 }
 
-function saveToLocalStorage() {
+function safeRemoveItem(key) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+    if (localStorage.getItem(key) === null) return false;
+    localStorage.removeItem(key);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+function saveToLocalStorage() {
+  const data = JSON.stringify(products);
+  try {
+    localStorage.setItem(STORAGE_KEY, data);
     storageErrorShown = false;
   } catch (error) {
+    // El respaldo (ver backUpListForThisVersion) ocupa lugar: si la lista no
+    // entra, se libera eso primero, porque la lista actual importa más.
+    if (safeRemoveItem(LIST_BACKUP_KEY)) {
+      try {
+        localStorage.setItem(STORAGE_KEY, data);
+        storageErrorShown = false;
+        return;
+      } catch (retryError) {
+        error = retryError;
+      }
+    }
     console.error("No se pudo guardar la lista.", error);
     if (!storageErrorShown) {
       storageErrorShown = true;
@@ -1037,6 +1068,25 @@ function mergeNewCatalogProducts() {
   saveCatalogVersion();
 }
 
+// Red de seguridad para las listas de la gente: la primera vez que se abre
+// cada versión nueva de la app, se guarda una copia de la lista tal como
+// estaba, antes de que esta versión la lea o la vuelva a guardar. Si una
+// actualización llegara a dañar listas, una versión siguiente puede
+// recuperarlas desde acá. Se reemplaza recién con la versión siguiente.
+function backUpListForThisVersion(raw) {
+  try {
+    const current = JSON.parse(safeGetItem(LIST_BACKUP_KEY) || "null");
+    if (current && current.version === APP_VERSION) return;
+    localStorage.setItem(
+      LIST_BACKUP_KEY,
+      JSON.stringify({ version: APP_VERSION, savedAt: new Date().toISOString(), list: raw })
+    );
+  } catch (error) {
+    // Sin lugar o sin almacenamiento: la app sigue igual, solo sin respaldo.
+    console.error("No se pudo guardar el respaldo de la lista.", error);
+  }
+}
+
 function loadFromLocalStorage() {
   const raw = safeGetItem(STORAGE_KEY);
 
@@ -1044,14 +1094,26 @@ function loadFromLocalStorage() {
     products = DEFAULT_PRODUCTS;
     saveToLocalStorage();
     saveCatalogVersion();
+    const seeded = safeGetItem(STORAGE_KEY);
+    if (seeded !== null) backUpListForThisVersion(seeded);
     return;
   }
 
+  backUpListForThisVersion(raw);
+
   try {
     const parsed = JSON.parse(raw);
-    products = sanitizeProductList(parsed);
+    products = sanitizeProductList(parsed, Infinity);
   } catch (error) {
-    console.error("No se pudo leer la lista guardada, se reinicia.", error);
+    // La lista guardada no se puede leer: se arranca vacía, pero el
+    // contenido original se guarda aparte para no perderlo con el próximo
+    // guardado.
+    console.error("No se pudo leer la lista guardada, se guarda aparte y se reinicia.", error);
+    try {
+      localStorage.setItem(UNREADABLE_LIST_KEY, raw);
+    } catch (saveError) {
+      console.error("No se pudo guardar aparte la lista ilegible.", saveError);
+    }
     products = [];
   }
 

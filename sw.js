@@ -1,4 +1,4 @@
-const CACHE_NAME = "neko-lista-v6";
+const CACHE_NAME = "neko-lista-v7";
 const APP_SHELL = [
   "./",
   "index.html",
